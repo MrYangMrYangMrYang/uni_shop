@@ -1,7 +1,33 @@
 
+// uni-app中的条件编译：#ifndef VUE3：如果不是Vue3环境，#ifdef VUE3：如果是Vue3环境，#endif：结束条件编译
 // #ifndef VUE3
 import Vue from 'vue'
 import App from './App'
+import { $http } from '@escook/request-miniprogram'
+
+// 配置网络请求
+uni.$http = $http
+// 配置请求根路径
+$http.baseUrl = 'https://api-hmugo-web.itheima.net'
+// 请求开始之前做一些事情
+$http.beforeRequest = function (options) {
+uni.showLoading({
+title: '数据加载中...',
+})
+}
+// 请求完成之后做一些事情
+$http.afterRequest = function () {
+uni.hideLoading()
+}
+
+// 封装的展示消息提示的方法
+uni.$showMsg = function (title = '数据加载失败！', duration = 1500) {
+	uni.showToast({
+		title,
+		duration,
+		icon: 'none',
+	})
+}
 
 Vue.config.productionTip = false
 
