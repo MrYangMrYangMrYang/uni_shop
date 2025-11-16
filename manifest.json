@@ -55,6 +55,7 @@
             "urlCheck" : false,
 			"checkSiteMap": false
         },
+		"lazyCodeLoading": "requiredComponents",
         "usingComponents" : true
     },
     "vueVersion" : "2"
