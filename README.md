@@ -1,4 +1,4 @@
-# Sunshine购！API文档
+# Sunshine优购！API文档
 
 request域名：小程序只支持 https 协议，并且要求是已备案的域名。
 
