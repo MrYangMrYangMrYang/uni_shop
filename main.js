@@ -3,7 +3,10 @@
 // #ifndef VUE3
 import Vue from 'vue'
 import App from './App'
+// 导入网络请求的实例对象
 import { $http } from '@escook/request-miniprogram'
+// 导入 store 的实例对象
+import store from './store/store.js'
 
 // 配置网络请求
 uni.$http = $http
@@ -34,7 +37,8 @@ Vue.config.productionTip = false
 App.mpType = 'app'
 
 const app = new Vue({
-    ...App
+    ...App,
+	store
 })
 app.$mount()
 // #endif

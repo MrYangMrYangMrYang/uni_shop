@@ -55,6 +55,9 @@
             "urlCheck" : false,
 			"checkSiteMap": false
         },
+		"requiredPrivateInfos": [
+		    "chooseAddress"
+		],
 		"lazyCodeLoading": "requiredComponents",
         "usingComponents" : true
     },

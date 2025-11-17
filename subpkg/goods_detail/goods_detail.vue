@@ -43,6 +43,9 @@
 </template>
 
 <script>
+	// 从 vuex 中按需导出 mapState 辅助方法
+	import { mapState,mapMutations,mapGetters } from 'vuex'
+	
 	export default {
 		data() {
 			return {
@@ -55,7 +58,7 @@
 				}, {
 					icon: 'cart',
 					text: '购物车',
-					info: 2
+					info: 0
 				}],
 				// 右侧按钮组的配置对象
 				buttonGroup: [{
@@ -69,6 +72,31 @@
 				}]
 			};
 		},
+		computed: {
+			// 把 m_cart 模块中名称为 total 的 getter 映射到当前页面中使用
+			...mapGetters('m_cart', ['total']),
+		},
+		// 使用普通函数的形式定义的 watch 侦听器，在页面首次加载后不会被调用，为了防止这个问题，可以使用对象的形式来定义 watch 侦听器
+		watch: {
+		    // total(newVal) {
+		    //     const findResult = this.options.find(x => x.text === '购物车')
+		    //     if (findResult) {
+		    //       findResult.info = newVal
+		    //     }
+		    // }
+			// 定义 total 侦听器，指向一个配置对象
+		    total: {
+				// handler方法 用来定义侦听器的 function 处理函数
+		        handler(newVal) {
+		          const findResult = this.options.find(x => x.text === '购物车')
+		          if (findResult) {
+		            findResult.info = newVal
+		          }
+		        },
+				// immediate 属性用来声明此侦听器，是否在页面初次加载完毕后立即调用
+		        immediate: true
+		    }
+		},
 		onLoad(options) {
 			// 获取商品 Id
 			const goods_id = options.goods_id
@@ -76,6 +104,9 @@
 			this.getGoodsDetail(goods_id)
 		},
 		methods: {
+			// 把 m_cart 模块中的 addToCart 方法映射到当前页面使用
+			...mapMutations('m_cart', ['addToCart']),
+			
 		    // 定义请求商品详情数据的方法
 			async getGoodsDetail(goods_id) {
 				const { data: res } = await uni.$http.get('/api/public/v1/goods/detail', { goods_id })
@@ -104,6 +135,24 @@
 					uni.switchTab({
 						url: '/pages/cart/cart'
 					})
+				}
+			},
+			
+			// 添加商品对象到购物车
+			buttonClick(e) {
+				if (e.content.text === '加入购物车') {
+				  // 组织商品的信息对象
+				  // { goods_id, goods_name, goods_price, goods_count, goods_small_logo, goods_state }
+				  const goods = {
+					goods_id: this.goods_info.goods_id,
+					goods_name: this.goods_info.goods_name,
+					goods_price: this.goods_info.goods_price,
+					goods_count: 1,
+					goods_small_logo: this.goods_info.goods_small_logo,
+					goods_state: true // 商品的勾选状态
+				  }
+				  // 调用 addToCart 方法
+				  this.addToCart(goods)
 				}
 			}
 		},
