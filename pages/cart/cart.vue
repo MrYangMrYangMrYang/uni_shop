@@ -1,5 +1,12 @@
 <template>
-	<view class="cart-container" v-if="cart.length !== 0">
+	<!-- 空白购物车区域 -->
+	<view class="empty-cart" v-if="cart.length === 0">
+		<image src="/static/cart_empty@2x.png" class="empty-img"></image>
+		<text class="tip-text">空空如也~</text>
+	</view>
+	
+	<!-- 有商品的区域 -->
+	<view class="cart-container" v-else>
 		<!-- 自定义收货地址组件 -->
 		<my-address></my-address>
 		
@@ -22,12 +29,6 @@
 		
 		<!-- 自定义结算区域组件 -->
 		<my-settle></my-settle>
-	</view>
-	
-	<!-- 空白购物车区域 -->
-	<view class="empty-cart" v-else>
-		<image src="/static/cart_empty@2x.png" class="empty-img"></image>
-		<text class="tip-text">空空如也~</text>
 	</view>
 </template>
 

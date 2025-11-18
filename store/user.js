@@ -9,7 +9,7 @@ export default {
     token: uni.getStorageSync('token') || '',
     // 用户的信息对象
     userinfo: JSON.parse(uni.getStorageSync('userinfo') || '{}'),
-    // 重定向的 Object 对象
+    // 重定向的 Object 对象（用于返回未登录之前的页面）
     redirectInfo: null
   }),
 
@@ -44,9 +44,10 @@ export default {
     saveTokenToStorage(state) {
       uni.setStorageSync('token', state.token)
     },
+	// 更新重定向的 Object 对象
     updateRedirectInfo(state, info) {
       state.redirectInfo = info
-      console.log(state.redirectInfo)
+      // console.log(state.redirectInfo)
     }
   },
 

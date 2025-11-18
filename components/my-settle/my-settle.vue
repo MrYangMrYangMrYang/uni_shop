@@ -21,7 +21,7 @@
   export default {
     data() {
       return {
-        // 倒计时的秒数
+        // 设置倒计时的秒数
         seconds: 3,
         // 定时器的 Id
         timer: null
@@ -51,29 +51,37 @@
         if (!this.checkedCount) return uni.$showMsg('请选择要结算的商品！')
         if (!this.addstr) return uni.$showMsg('请选择收货地址！')
         // if (!this.token) return uni.$showMsg('请先登录！')
+		// 如果未登录，调用延时登录方法
         if (!this.token) return this.delayNavigate()
+		// 调用微信支付
         this.payOrder()
       },
+	  // 微信支付
       async payOrder() {
         // 1. 创建订单
         // 1.1 组织订单的信息对象
         const orderInfo = {
+          // 开发期间，注释掉真实的订单价格，
           // order_price: this.checkedGoodsAmount,
+          // 写死订单总价为 1 分钱
           order_price: 0.01,
           consignee_addr: this.addstr,
+		  // 返回服务器所需要的商品信息数组
           goods: this.cart.filter(x => x.goods_state).map(x => ({
             goods_id: x.goods_id,
             goods_number: x.goods_count,
             goods_price: x.goods_price
           }))
         }
+		// console.log(orderInfo);
 
         // 1.2 发起请求创建订单
         const { data: res } = await uni.$http.post('/api/public/v1/my/orders/create', orderInfo)
+		// console.log(res);
         if (res.meta.status !== 200) return uni.$showMsg('创建订单失败！')
-
         // 1.3 得到服务器响应的“订单编号”
         const orderNumber = res.message.order_number
+		// console.log(orderNumber);
 
         // 2. 订单预支付
         // 2.1 发起请求获取订单的支付信息
@@ -98,41 +106,47 @@
           icon: 'success'
         })
       },
-      // 延时导航到 my 页面
+      // 未登录时，延时导航到登陆页面页面
       delayNavigate() {
+		// 重置倒计时秒数
         this.seconds = 3
-
         this.showTips(this.seconds)
-
+		// 开启定时器
         this.timer = setInterval(() => {
+		  // 秒数自减
           this.seconds--
-
           if (this.seconds <= 0) {
+			// 清除定时器
             clearInterval(this.timer)
-
+			// 跳转到登录页面
             uni.switchTab({
               url: '/pages/my/my',
+			  // 成功后的回调函数
               success: () => {
+				// 调用 vuex 的 updateRedirectInfo 方法，把跳转信息存储到 Store 中
                 this.updateRedirectInfo({
+				  // 跳转的方式
                   openType: 'switchTab',
+				  // 从哪个页面跳转过去的
                   from: '/pages/cart/cart'
                 })
               }
             })
-
+			// 终止后续代码的运行（当秒数为 0 时，不再展示 toast 提示消息）
             return
           }
-
+		  // 根据最新的秒数，进行消息提示
           this.showTips(this.seconds)
         }, 1000)
       },
       // 展示倒计时的提示消息
       showTips(n) {
+		// 调用 uni.showToast() 方法，展示提示消息
         uni.showToast({
-          icon: 'none',
+          icon: 'none', // 不展示任何图标
           title: '请登录后再结算！' + n + '秒之后自动跳转到登录页',
-          mask: true,
-          duration: 1500
+          mask: true,  // 为页面添加透明遮罩，防止点击穿透
+          duration: 1500 // 1.5 秒后自动消失
         })
       }
     }
