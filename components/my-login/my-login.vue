@@ -1,9 +1,19 @@
 <template>
-  <view class="login-container">
-    <uni-icons type="contact-filled" size="100" color="#AFAFAF"></uni-icons>
-	<!-- 按钮绑定 open-type="getUserInfo" 属性，表示点击按钮时，希望获取用户的基本信息 -->
-    <button type="primary" class="btn-login" open-type="getUserInfo" @getuserinfo="getUserInfo">一键登录</button>
-    <text class="tips-text">登录后尽享更多权益</text>
+  <view class="login-container u-page--page">
+    <view class="login-card u-card--shadow">
+      <view class="icon-box">
+        <uni-icons type="contact-filled" size="80" color="#C00000"></uni-icons>
+      </view>
+      <view class="welcome-text">欢迎回来</view>
+      <view class="tips-text">登录后即可查看订单并享受更多权益</view>
+      <!-- 按钮绑定 open-type="getUserInfo" 属性，表示点击按钮时，希望获取用户的基本信息 -->
+      <button type="primary" class="btn-login u-pressable" open-type="getUserInfo" @getuserinfo="getUserInfo">
+        一键登录
+      </button>
+      <view class="bottom-tips">
+        登录即代表您已阅读并同意<text class="link">用户协议</text>与<text class="link">隐私政策</text>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -82,38 +92,69 @@
 
 <style lang="scss">
   .login-container {
-    height: 750rpx;
-    background-color: #F8F8F8;
+    height: 100vh;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    position: relative;
-    overflow: hidden;
+    padding: 0 $space-6;
 
-    &::after {
-      content: ' ';
-      display: block;
+    .login-card {
       width: 100%;
-      height: 40px;
-      background-color: white;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      border-radius: 100%;
-      transform: translateY(50%);
-    }
+      background-color: #fff;
+      padding: $space-7 $space-6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      
+      .icon-box {
+        width: 160rpx;
+        height: 160rpx;
+        background-color: $color-primary-light;
+        border-radius: $radius-pill;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: $space-4;
+      }
 
-    .btn-login {
-      width: 90%;
-      border-radius: 100px;
-      margin: 15px 0;
-      background-color: #C00000;
-    }
+      .welcome-text {
+        font-size: $font-xl;
+        font-weight: 800;
+        color: $color-text-900;
+        margin-bottom: $space-2;
+      }
 
-    .tips-text {
-      font-size: 12px;
-      color: gray;
+      .tips-text {
+        font-size: $font-sm;
+        color: $color-text-300;
+        margin-bottom: $space-7;
+        text-align: center;
+      }
+
+      .btn-login {
+        width: 100%;
+        height: 88rpx;
+        line-height: 88rpx;
+        border-radius: $radius-pill;
+        background-color: $color-primary-600;
+        font-size: $font-md;
+        font-weight: 600;
+        box-shadow: 0 12rpx 30rpx rgba(192, 0, 0, 0.2);
+        border: none;
+        margin-bottom: $space-6;
+      }
+
+      .bottom-tips {
+        font-size: $font-xs;
+        color: $color-text-300;
+        text-align: center;
+        
+        .link {
+          color: $color-primary-600;
+          margin: 0 4rpx;
+        }
+      }
     }
   }
 </style>

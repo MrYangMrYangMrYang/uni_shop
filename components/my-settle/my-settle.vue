@@ -1,5 +1,5 @@
 <template>
-  <view class="my-settle-container">
+  <view class="my-settle-container u-fixed-footer">
     <!-- 全选 -->
     <label class="radio" @click="changeAllState">
       <radio color="#C00000" :checked="isFullCheck" /><text>全选</text>
@@ -11,7 +11,7 @@
     </view>
 
     <!-- 结算按钮 -->
-    <view class="btn-settle" @click="settlement">结算({{checkedCount}})</view>
+    <view class="btn-settle u-btn-primary u-pressable" @click="settlement">结算({{checkedCount}})</view>
   </view>
 </template>
 
@@ -49,12 +49,12 @@
       // 用户点击了结算按钮
       settlement() {
         if (!this.checkedCount) return uni.$showMsg('请选择要结算的商品！')
-        if (!this.addstr) return uni.$showMsg('请选择收货地址！')
-        // if (!this.token) return uni.$showMsg('请先登录！')
-		// 如果未登录，调用延时登录方法
         if (!this.token) return this.delayNavigate()
-		// 调用微信支付
-        this.payOrder()
+        
+        // 跳转到订单页面
+        uni.navigateTo({
+          url: '/subpkg/order/order'
+        })
       },
 	  // 微信支付
       async payOrder() {
@@ -155,10 +155,6 @@
 
 <style lang="scss">
   .my-settle-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
     height: 50px;
     background-color: white;
     display: flex;
@@ -174,15 +170,13 @@
 
     .amount-box {
       .amount {
-        color: #C00000;
+        color: $color-primary-600;
         font-weight: bold;
       }
     }
 
     .btn-settle {
-      background-color: #C00000;
       height: 50px;
-      color: white;
       line-height: 50px;
       padding: 0 10px;
       min-width: 100px;

@@ -1,9 +1,11 @@
 <template>
 	<view class="u-page u-page--page">
-		<!-- 自定义红色导航栏 (TabBar 模式下不显示返回按钮) -->
+		<!-- 自定义红色导航栏 -->
 		<view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="nav-content">
-				<view class="back-box"></view>
+				<view class="back-box" @click="goBack">
+					<uni-icons type="arrowleft" size="18" color="#FFF"></uni-icons>
+				</view>
 				<text class="nav-title">Sunny优购</text>
 				<view class="placeholder"></view>
 			</view>
@@ -51,50 +53,41 @@
 </template>
 
 <script>
-	// 导入自己封装的 mixin 模块
-	import badgeMix from '@/mixins/tabbar-badge.js'
-	// 按需导入vuex的辅助函数
 	import { mapState, mapMutations } from 'vuex'
 	
 	export default {
-		// 将 badgeMix 混入到当前的页面中进行使用
-		mixins: [badgeMix],
 		data() {
 			return {
-				// 状态栏高度
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				options: [{
-					text: '删除', // 显示的文本内容
+					text: '删除',
 					style: {
-						backgroundColor: '#C00000' // 按钮的背景颜色
+						backgroundColor: '#C00000'
 					}
 				}]
 			};
 		},
 		computed: {
-			// 将 m_cart 模块中的 cart 数组映射到当前页面中使用
 			...mapState('m_cart', ['cart']),
 		},
 		methods: {
 			...mapMutations('m_cart', ['updateGoodsState','updateGoodsCount','removeGoodsById']),
-			// 获取商品改变后的勾选状态，再通过store提供的方法进行修改
 			radioChangeHandler(e) {
-				// console.log(e) // 输出得到的数据 -> {goods_id: 395, goods_state: false}
 				this.updateGoodsState(e)
 			},
-			// 获取改变后的商品数量，再通过store提供的方法进行状态修改
 			numberChangeHandler(e) {
 				this.updateGoodsCount(e)
 			},
-			// 根据id删除对应的商品
 			swipeItemClickHandler(goods) {
 				this.removeGoodsById(goods.goods_id)
 			},
-			// 点击商品跳转到商品详情页
 			gotoDetail(goods) {
 				uni.navigateTo({
 					url: '/subpkg/goods_detail/goods_detail?goods_id=' + goods.goods_id
 				})
+			},
+			goBack() {
+				uni.navigateBack()
 			},
 			// 跳转到首页
 			goHome() {

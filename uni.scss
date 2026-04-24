@@ -1,0 +1,243 @@
+$color-primary: #C00000; // 统一的主题红
+$color-primary-light: rgba(192, 0, 0, 0.1);
+$color-primary-dark: #a80000;
+
+$color-text: #303133;
+$color-text-secondary: #606266;
+$color-text-muted: #909399;
+$color-border: #efefef;
+$color-bg: #ffffff;
+$color-bg-soft: #f8f8f8;
+$color-bg-page: #f4f4f4;
+
+$color-primary-600: $color-primary;
+$color-primary-500: $color-primary;
+$color-primary-100: $color-primary-light;
+
+$color-accent-100: rgba(255, 122, 26, 0.1); // accent 主题色的浅色背景
+$color-accent-500: #ff7a1a;
+
+$color-text-900: #1f2329;
+$color-text-700: $color-text;
+$color-text-500: $color-text-secondary;
+$color-text-300: $color-text-muted;
+
+$color-border-1: rgba(31, 35, 41, 0.08);
+$color-border-2: rgba(31, 35, 41, 0.12);
+
+$color-bg-page-strong: #f6f7fb;
+$color-bg-card: #ffffff;
+
+$radius-sm: 6rpx;
+$radius-md: 12rpx;
+$radius-lg: 16rpx;
+$radius-pill: 1000rpx;
+
+$space-1: 8rpx;
+$space-2: 16rpx;
+$space-3: 24rpx;
+$space-4: 32rpx;
+$space-5: 40rpx;
+$space-6: 48rpx;
+$space-7: 64rpx;
+
+$font-xs: 22rpx;
+$font-sm: 24rpx;
+$font-md: 28rpx;
+$font-lg: 32rpx;
+$font-xl: 40rpx;
+
+$z-sticky: 999;
+$z-fixed: 900;
+
+$shadow-sm: 0 8rpx 24rpx rgba(31, 35, 41, 0.08);
+$shadow-md: 0 14rpx 40rpx rgba(31, 35, 41, 0.12);
+
+$brand-gradient: $color-primary-600;
+
+// -------- Layout utilities --------
+page {
+	background-color: $color-bg-page-strong;
+}
+
+.u-page {
+	min-height: 100vh;
+	background: inherit;
+	color: $color-text-700;
+	box-sizing: border-box;
+}
+
+.u-page--soft {
+	background: $color-bg-soft;
+}
+
+.u-page--page {
+	background: $color-bg-page-strong;
+}
+
+.u-sticky-top {
+	position: sticky;
+	top: 0;
+	z-index: $z-sticky;
+}
+
+.u-card {
+	background: $color-bg;
+	border-radius: $radius-md;
+}
+
+.u-card--shadow {
+	background: $color-bg-card;
+	border-radius: $radius-lg;
+	box-shadow: $shadow-sm;
+}
+
+.u-card--border {
+	background: $color-bg-card;
+	border-radius: $radius-lg;
+	border: 1px solid $color-border-1;
+}
+
+.u-divider {
+	border-bottom: 1px solid $color-border;
+}
+
+.u-header-gradient {
+	background: $color-primary-600;
+}
+
+.u-header-brand {
+	background: $color-primary-600;
+	position: relative;
+	overflow: hidden;
+}
+
+.u-header-brand::before {
+	content: ' ';
+	position: absolute;
+	inset: -120rpx;
+	background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%);
+	pointer-events: none;
+}
+
+.u-header-elevated {
+	box-shadow: $shadow-sm;
+	border-bottom: 1px solid $color-border-1;
+}
+
+.u-brand-header {
+	padding: $space-2;
+}
+
+.u-brand-header .uni-searchbar,
+.u-brand-header .my-search-container {
+	border-radius: $radius-pill;
+	overflow: hidden;
+}
+
+.u-pressable {
+	transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.u-pressable:active {
+	transform: scale(0.98);
+	opacity: 0.92;
+}
+
+.u-btn-primary {
+	background: $color-primary-600;
+	color: #fff;
+	border-radius: $radius-pill;
+	box-shadow: 0 10rpx 26rpx rgba(192, 0, 0, 0.22);
+}
+
+.u-btn-outline {
+	background: rgba(255, 255, 255, 0.85);
+	color: $color-primary-600;
+	border: 1px solid rgba(192, 0, 0, 0.28);
+	border-radius: $radius-pill;
+}
+
+.u-btn-ghost {
+	background: transparent;
+	color: $color-primary-600;
+	border-radius: $radius-pill;
+}
+
+.u-tag-primary {
+	background: $color-primary-100;
+	color: $color-primary-600;
+	border: 1px solid rgba(192, 0, 0, 0.18);
+	border-radius: $radius-pill;
+	padding: 0 14rpx;
+	line-height: 44rpx;
+	font-size: $font-sm;
+}
+
+.u-tag-muted {
+	background: rgba(31, 35, 41, 0.06);
+	color: $color-text-500;
+	border: 1px solid rgba(31, 35, 41, 0.1);
+	border-radius: $radius-pill;
+	padding: 0 14rpx;
+	line-height: 44rpx;
+	font-size: $font-sm;
+}
+
+.u-chip {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8rpx;
+	padding: 0 18rpx;
+	line-height: 56rpx;
+	border-radius: $radius-pill;
+	font-size: $font-sm;
+}
+
+.u-chip--outline {
+	background: rgba(255, 255, 255, 0.92);
+	color: $color-text-500;
+	border: 1px solid $color-border-1;
+}
+
+.u-chip--primary {
+	background: $color-primary-100;
+	color: $color-primary-600;
+	border: 1px solid rgba(192, 0, 0, 0.18);
+}
+
+.u-img-rounded {
+	border-radius: $radius-md;
+	overflow: hidden;
+}
+
+.u-text-muted {
+	color: $color-text-300;
+}
+
+.u-tag-accent {
+	background: $color-accent-100;
+	color: $color-accent-500;
+	border: 1px solid rgba(255, 122, 26, 0.22);
+	border-radius: $radius-pill;
+	padding: 0 14rpx;
+	line-height: 44rpx;
+	font-size: $font-sm;
+}
+
+// Fixed footer safe-area helper:
+// - Use on fixed bottom bars (settle/nav)
+.u-fixed-footer {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: $z-fixed;
+	padding-bottom: env(safe-area-inset-bottom);
+}
+
+// - Add after page content to avoid being covered
+.u-fixed-footer-spacer {
+	height: calc(100rpx + env(safe-area-inset-bottom));
+}

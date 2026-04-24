@@ -1,37 +1,40 @@
 <template>
 	<!-- 通过v-if解决商品价格闪烁的问题 -->
-	<view v-if="goods_info.goods_name" class="goods-detail-container">
+	<view v-if="goods_info.goods_name" class="goods-detail-container u-page u-page--page">
 		<!-- 轮播图区域 -->
-		<swiper :indicator-dots="true" :autoplay="true" :interval="3000" :duration="1000" :circular="true">
-			<swiper-item v-for="(item, i) in goods_info.pics" :key="i">
-				<image :src="item.pics_big" @click="preview(i)"></image>
-			</swiper-item>
-		</swiper>
+		<view class="gallery u-card--shadow">
+			<swiper :indicator-dots="true" :autoplay="true" :interval="3000" :duration="1000" :circular="true" indicator-active-color="#C00000">
+				<swiper-item v-for="(item, i) in goods_info.pics" :key="i">
+					<image :src="item.pics_big" @click="preview(i)"></image>
+				</swiper-item>
+			</swiper>
+		</view>
 		
 		<!-- 商品信息区域 -->
-		<view class="goods-info-box">
-		  <!-- 商品价格 -->
-		  <view class="price">￥{{goods_info.goods_price}}</view>
-		  <!-- 商品信息主体区域 -->
-		  <view class="goods-info-body">
+		<view class="goods-info-box u-card--shadow">
+			<view class="price-row">
+				<!-- 商品价格 -->
+				<view class="price">￥{{goods_info.goods_price}}</view>
+				<!-- 收藏 -->
+				<view class="favi u-chip u-chip--outline u-pressable">
+					<uni-icons type="star" size="16" color="#909399"></uni-icons>
+					<text>收藏</text>
+				</view>
+			</view>
 			<!-- 商品的名字 -->
 			<view class="goods-name">{{goods_info.goods_name}}</view>
-			<!-- 收藏 -->
-			<view class="favi">
-			  <uni-icons type="star" size="18" color="gray"></uni-icons>
-			  <text>收藏</text>
-			</view>
-		  </view>
-		  <!-- 运费 -->
-		  <view class="yf">快递：免运费</view>
+			<!-- 运费 -->
+			<view class="yf u-text-muted">快递：免运费</view>
 		</view>
 		
 		<!-- 商品详情信息 -->
 		<!-- 在页面结构中，可以使用uni-app中的 rich-text 组件，将带有 HTML 标签的内容，渲染为小程序的页面结构 -->
-		<rich-text :nodes="goods_info.goods_introduce"></rich-text>
+		<view class="goods-rich u-card--shadow">
+			<rich-text :nodes="goods_info.goods_introduce"></rich-text>
+		</view>
 		
 		<!-- 商品导航组件 -->
-		<view class="goods_nav">
+		<view class="goods_nav u-fixed-footer">
 			<!-- fill 控制右侧按钮的样式 -->
 			<!-- options 左侧按钮的配置项 -->
 			<!-- buttonGroup 右侧按钮的配置项 -->
@@ -39,6 +42,9 @@
 			<!-- buttonClick 右侧按钮的点击事件处理函数 -->
 			<uni-goods-nav :fill="true" :options="options" :buttonGroup="buttonGroup" @click="onClick" @buttonClick="buttonClick"/>
 		</view>
+		
+		<!-- 底部 fixed 商品导航占位，避免遮挡 -->
+		<view class="u-fixed-footer-spacer"></view>
 	</view>
 </template>
 
@@ -53,6 +59,9 @@
 				goods_info: {},
 				// 左侧按钮组的配置对象
 				options: [{
+					icon: 'headphones',
+					text: '客服'
+				}, {
 					icon: 'shop',
 					text: '店铺'
 				}, {
@@ -63,11 +72,11 @@
 				// 右侧按钮组的配置对象
 				buttonGroup: [{
 					text: '加入购物车',
-					backgroundColor: '#ff0000',
+					backgroundColor: '#ffa200',
 					color: '#fff'
 				},{
 					text: '立即购买',
-					backgroundColor: '#ffa200',
+					backgroundColor: '#C00000',
 					color: '#fff'
 				}]
 			};
@@ -75,6 +84,7 @@
 		computed: {
 			// 把 m_cart 模块中名称为 total 的 getter 映射到当前页面中使用
 			...mapGetters('m_cart', ['total']),
+			...mapState('m_user', ['token']),
 		},
 		// 使用普通函数的形式定义的 watch 侦听器，在页面首次加载后不会被调用，为了防止这个问题，可以使用对象的形式来定义 watch 侦听器
 		watch: {
@@ -106,6 +116,7 @@
 		methods: {
 			// 把 m_cart 模块中的 addToCart 方法映射到当前页面使用
 			...mapMutations('m_cart', ['addToCart']),
+			...mapMutations('m_user', ['updateRedirectInfo']),
 			
 		    // 定义请求商品详情数据的方法
 			async getGoodsDetail(goods_id) {
@@ -130,29 +141,81 @@
 			
 			// 点击跳转到购物车页面
 			onClick(e) {
-				if (e.content.text === '购物车') {
-					// 切换到购物车页面
-					uni.switchTab({
-						url: '/pages/cart/cart'
+				if (e.content.text === '客服') {
+					uni.navigateTo({
+						url: '/subpkg/contact/contact'
+					})
+				} else if (e.content.text === '购物车') {
+					// 使用 navigateTo 跳转到非 TabBar 的购物车页面，保留详情页在栈中
+					uni.navigateTo({
+						url: '/subpkg/cart/cart'
 					})
 				}
 			},
 			
 			// 添加商品对象到购物车
 			buttonClick(e) {
+				// 1. 判断是否登录
+				if (!this.token) {
+					uni.showToast({
+						title: '请先登录！',
+						icon: 'none',
+						duration: 1500
+					})
+					// 延迟跳转到登录页
+					setTimeout(() => {
+						uni.switchTab({
+							url: '/pages/my/my',
+							success: () => {
+								// 存储重定向信息
+								this.updateRedirectInfo({
+									openType: 'switchTab',
+									from: '/subpkg/goods_detail/goods_detail?goods_id=' + this.goods_info.goods_id
+								})
+							}
+						})
+					}, 1500)
+					return
+				}
+
 				if (e.content.text === '加入购物车') {
 				  // 组织商品的信息对象
-				  // { goods_id, goods_name, goods_price, goods_count, goods_small_logo, goods_state }
 				  const goods = {
 					goods_id: this.goods_info.goods_id,
 					goods_name: this.goods_info.goods_name,
 					goods_price: this.goods_info.goods_price,
 					goods_count: 1,
 					goods_small_logo: this.goods_info.goods_small_logo,
-					goods_state: true // 商品的勾选状态
+					goods_state: true
 				  }
 				  // 调用 addToCart 方法
 				  this.addToCart(goods)
+				  
+				  uni.showToast({
+					title: '已加入购物车',
+					duration: 800,
+					icon: 'none',
+					mask: true
+				  })
+
+				  setTimeout(() => {
+					uni.navigateTo({
+						url: '/subpkg/cart/cart'
+					})
+				  }, 1000)
+				} else if (e.content.text === '立即购买') {
+				  // 立即购买：不添加到购物车，直接将商品信息传给订单页面
+				  const goods = {
+					goods_id: this.goods_info.goods_id,
+					goods_name: this.goods_info.goods_name,
+					goods_price: this.goods_info.goods_price,
+					goods_count: 1,
+					goods_small_logo: this.goods_info.goods_small_logo,
+					goods_state: true
+				  }
+				  uni.navigateTo({
+					url: '/subpkg/order/order?goods=' + encodeURIComponent(JSON.stringify(goods))
+				  })
 				}
 			}
 		},
@@ -160,8 +223,13 @@
 </script>
 
 <style lang="scss">
-	 swiper {
-	    height: 750rpx;
+	  .gallery {
+		margin: $space-2;
+		overflow: hidden;
+	  }
+
+	  swiper {
+	    height: 680rpx;
 	
 	    image {
 	      width: 100%;
@@ -170,53 +238,56 @@
 	  }
 	
 	  .goods-info-box {
-	    padding: 10px;
-	    padding-right: 0;
-	
-	    .price {
-	      color: #C00000;
-	      font-size: 18px;
-	      margin: 10px 0;
-	    }
-	
-	    .goods-info-body {
-	      display: flex;
-	      justify-content: space-between;
-	
-	      .goods-name {
-	        font-size: 13px;
-	        margin-right: 10px;
-	      }
-	
-	      .favi {
-	        width: 120px;
-	        font-size: 12px;
-	        display: flex;
-	        flex-direction: column;
-	        align-items: center;
-	        justify-content: center;
-	        border-left: 1px solid #efefef;
-	        color: gray;
-	      }
-	    }
-	
-	    .yf {
-	      font-size: 12px;
-	      color: gray;
-	      margin: 10px 0;
-	    }
+		margin: $space-2;
+		padding: $space-3;
 	  }
+
+	  .price-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: $space-2;
+	  }
+
+	  .price {
+		color: $color-primary-600;
+		font-size: $font-xl;
+		font-weight: 800;
+	  }
+
+	  .goods-name {
+		margin-top: $space-2;
+		font-size: $font-md;
+		font-weight: 700;
+		line-height: 1.35;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	  }
+
+	  .yf {
+		margin-top: $space-2;
+		font-size: $font-sm;
+	  }
+
+	  .goods-rich {
+		margin: $space-2;
+		padding: $space-2;
+		overflow: hidden;
+	  }
+
+	  .goods-rich :deep(img) {
+		max-width: 100%;
+		border-radius: $radius-md;
+	}
 	
 	  .goods_nav {
-	    position: fixed;
-	    bottom: 0;
-	    left: 0;
 	    width: 100%;
 	  }
-	
-	  // 给页面外层的容器，添加 50px 的内padding，
-	  // 防止页面内容被底部的商品导航组件遮盖
-	  .goods-detail-container {
-	    padding-bottom: 50px;
+
+	  .goods_nav :deep(.uni-tab__cart-box) {
+		box-shadow: 0 -8rpx 24rpx rgba(31, 35, 41, 0.08);
+		border-top: 1px solid $color-border-1;
 	  }
 </style>

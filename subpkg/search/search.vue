@@ -1,7 +1,7 @@
 <template>
-	<view>
+	<view class="u-page u-page--page">
 		<!-- 搜索框 -->
-		<view class="search-box">
+		<view class="search-box u-sticky-top u-header-brand u-header-elevated u-brand-header">
 			<!-- 使用 uni-ui 提供的搜索组件 -->
 			<uni-search-bar @input="input" :radius="100" cancelButton="none"></uni-search-bar>
 		</view>
@@ -19,7 +19,7 @@
 			<!-- 标题区域 -->
 			<view class="history-title">
 				<text>搜索历史</text>
-				<uni-icons type="trash" size="17" @click="cleanHistory"></uni-icons></uni-icons>
+				<uni-icons type="trash" size="18" @click="cleanHistory"></uni-icons>
 			</view>
 			<!-- 列表区域 -->
 			<view class="history-list">
@@ -135,25 +135,20 @@
 		flex-direction: row;
 		position: relative;
 		padding: 16rpx;
-		/* 将默认的 #FFFFFF 改为 #C00000 */
-		background-color: #c00000;
-	}
-	
-	.search-box {
-		position: sticky;
-		top: 0;
-		z-index: 999;
+		background-color: transparent;
 	}
 	
 	.sugg-list {
-		padding: 0 5px;
+		padding: 0 $space-2;
 		.sugg-item {
-			font-size: 12px;
-			padding: 13px 0;
-			border-bottom: 1px solid #efefef;
+			font-size: $font-sm;
+			padding: $space-3 0;
+			border-bottom: 1px solid $color-border-1;
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
+			transition: transform 120ms ease, opacity 120ms ease;
+			border-radius: $radius-md;
 			.goods-name {
 			// 文字不允许换行（单行文本）
 			white-space: nowrap;
@@ -161,21 +156,21 @@
 			overflow: hidden;
 			// 文本溢出后，使用 ... 代替
 			text-overflow: ellipsis;
-			margin-right: 3px;
+			margin-right: $space-1;
 			}
 		}
 	}
 	
 	.history-box {
-	    padding: 0 5px;
+	    padding: 0 $space-2;
 	
 	    .history-title {
 	      display: flex;
 	      justify-content: space-between;
-	      height: 40px;
+	      height: 80rpx;
 	      align-items: center;
-	      font-size: 13px;
-	      border-bottom: 1px solid #efefef;
+	      font-size: $font-md;
+	      border-bottom: 1px solid $color-border-1;
 	    }
 	
 	    .history-list {
@@ -183,8 +178,8 @@
 	      flex-wrap: wrap;
 	
 	      .uni-tag {
-	        margin-top: 5px;
-	        margin-right: 5px;
+	        margin-top: $space-2;
+	        margin-right: $space-2;
 	      }
 	    }
 	  }

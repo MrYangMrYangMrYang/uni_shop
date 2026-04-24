@@ -60,6 +60,16 @@ export default {
       state.cart.forEach(x => x.goods_state = newState)
 
       this.commit('m_cart/saveToStorage')
+    },
+    // 清空购物车
+    clearCart(state) {
+      state.cart = []
+      this.commit('m_cart/saveToStorage')
+    },
+    // 删除已勾选的商品
+    removeCheckedGoods(state) {
+      state.cart = state.cart.filter(x => !x.goods_state)
+      this.commit('m_cart/saveToStorage')
     }
   },
 

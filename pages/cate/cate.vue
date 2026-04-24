@@ -1,8 +1,10 @@
 <template>
-	<view>
+	<view class="u-page u-page--page">
 		 <!-- 使用自定义的搜索组件 -->
 		<!-- <my-search :bgcolor="'pink'" :radius="12"></my-search> -->
-		<my-search @click="gotoSearch"></my-search>
+		<view class="search-wrap u-header-brand u-header-elevated u-sticky-top u-brand-header">
+			<my-search @click="gotoSearch"></my-search>
+		</view>
 		
 		<view class="scroll-view-container">
 			<!-- 左侧的滚动视图区域 -->
@@ -15,7 +17,7 @@
 			<scroll-view class="right-scroll-view" scroll-y :scroll-top="scrollTop" :style="{height: wh + 'px'}">
 				<view class="cate-lv2" v-for="(item2, i2) in cateLevel2" :key="i2">
 					<!-- 二级分类的标题 -->
-					<view class="cate-lv2-title">《 {{item2.cat_name}} 》</view>
+					<view class="cate-lv2-title">{{item2.cat_name}}</view>
 					<!-- 动态渲染三级分类的列表数据 -->
 					<view class="cate-lv3-list">
 						<!-- 三级分类 Item 项 -->
@@ -71,18 +73,20 @@
 				const { data: res } = await uni.$http.get('/api/public/v1/categories')
 				// 判断是否获取失败
 				if (res.meta.status !== 200) return uni.$showMsg()
-				// 转存数据
-				this.cateList = res.message
-				// 为二级分类赋值
-				this.cateLevel2 = res.message[0].children
+				// 转存数据，过滤掉“冲锋衣”和“其他”
+				this.cateList = res.message.filter(item => !['冲锋衣', '其他'].includes(item.cat_name))
+				// 重新检查 active 索引是否超出范围
+				if (this.active >= this.cateList.length) this.active = 0
+				// 为二级分类赋值，并过滤掉“冲锋衣”和“其他”
+				this.cateLevel2 = this.cateList[this.active].children.filter(item => !['冲锋衣', '其他'].includes(item.cat_name))
 			},
 			
 			// 选中项改变的事件处理函数
 			activeChanged(i) {
 				// 更改激活项的值为选项下标
 				this.active = i
-				// 为二级分类列表重新赋值
-				this.cateLevel2 = this.cateList[i].children
+				// 为二级分类列表重新赋值，并过滤掉“冲锋衣”和“其他”
+				this.cateLevel2 = this.cateList[i].children.filter(item => !['冲锋衣', '其他'].includes(item.cat_name))
 				// 为滚动距离动态赋值，使切换一级标题时滚动条可以回到顶部
 				this.scrollTop = this.scrollTop === 0 ? 0.1 : 0
 			},
@@ -107,31 +111,41 @@
 <style lang="scss">
 	 .scroll-view-container {
 	    display: flex;
+		padding: $space-2;
+		gap: $space-2;
 	
 	    .left-scroll-view {
-	      width: 120px;
+	      width: 200rpx;
+		  border-radius: $radius-lg;
+		  overflow: hidden;
+		  background: $color-bg-card;
+		  box-shadow: $shadow-sm;
 	
 	      .left-scroll-view-item {
-	        background-color: #F7F7F7;
-	        line-height: 60px;
+	        background-color: transparent;
+	        line-height: 96rpx;
 	        text-align: center;
-	        font-size: 12px;
+	        font-size: $font-sm;
+			color: $color-text-500;
 			
 	        // 激活项的样式
 	        &.active {
-	          background-color: #FFFFFF;
+	          background-color: transparent;
 	          position: relative;
+			  color: $color-primary-600;
+			  font-weight: 700;
 	          // 渲染激活项左侧的红色指示边线
 	          &::before {
 	            content: ' ';
 	            display: block;
-	            width: 3px;
-	            height: 30px;
-	            background-color: #C00000;
+	            width: 6rpx;
+	            height: 32rpx;
+	            background-color: $color-primary-600;
 	            position: absolute;
 	            top: 50%;
-	            left: 0;
+	            left: 12rpx;
 	            transform: translateY(-50%);
+				border-radius: $radius-pill;
 	          }
 	        }
 	      }
@@ -139,31 +153,66 @@
 	  }
 	
 	  .cate-lv2-title {
-	    font-size: 12px;
-	    font-weight: bold;
+	    font-size: $font-md;
+	    font-weight: 800;
 	    text-align: center;
-	    padding: 15px 0;
+	    padding: $space-4 $space-2;
+		color: $color-text-900;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		letter-spacing: 2rpx;
+		
+		&::before, &::after {
+			content: '';
+			width: 40rpx;
+			height: 4rpx;
+			background: linear-gradient(to right, transparent, $color-primary-100);
+			border-radius: $radius-pill;
+			margin: 0 $space-2;
+		}
+		
+		&::after {
+			background: linear-gradient(to left, transparent, $color-primary-100);
+		}
 	  }
 	
 	  .cate-lv3-list {
-	    display: flex;
-	    flex-wrap: wrap;
+	    display: grid;
+	    grid-template-columns: repeat(3, 1fr);
+		gap: $space-2;
+		padding: 0 $space-2 $space-2;
 	
 	    .cate-lv3-item {
-	      width: 33.33%;
 	      display: flex;
 	      flex-direction: column;
 	      justify-content: center;
 	      align-items: center;
-	      margin-bottom: 10px;
+		  border-radius: $radius-lg;
+		  background: $color-bg-card;
+		  box-shadow: $shadow-sm;
+		  padding: $space-2 $space-1;
+		  transition: transform 120ms ease, opacity 120ms ease;
+
+		  &:active {
+			transform: scale(0.98);
+			opacity: 0.92;
+		  }
 	
 	      image {
-	        width: 60px;
-	        height: 60px;
+	        width: 96rpx;
+	        height: 96rpx;
+			border-radius: $radius-md;
 	      }
 	
 	      text {
-	        font-size: 12px;
+	        font-size: $font-sm;
+			color: $color-text-700;
+			margin-top: $space-1;
+			max-width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 	      }
 	    }
 	  }

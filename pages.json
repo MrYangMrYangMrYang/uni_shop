@@ -1,46 +1,105 @@
 {
-  "pages": [{
-    "path": "pages/home/home",
-    "style": {}
-  }, {
-    "path": "pages/cate/cate",
-    "style": {}
-  }, {
-    "path": "pages/cart/cart",
-    "style": {}
-  }, {
-    "path": "pages/my/my",
-    "style": {}
-  }],
-  "subPackages": [{
-    "root": "subpkg",
-    "pages": [{
-      "path": "goods_detail/goods_detail",
-      "style": {}
-    }, {
-      "path": "goods_list/goods_list",
+  "pages": [
+    {
+      "path": "pages/home/home",
       "style": {
-        "onReachBottomDistance": 150,
-        "enablePullDownRefresh": true,
-        "backgroundColor": "#F8F8F8"
+        "navigationBarTitleText": "Sunny优购"
       }
-    }  ,{
-		"path" : "search/search",
-		"style" : {
-			"navigationBarTitleText": "阳光优购",
-			"enablePullDownRefresh": false
-		}           
-	}]
-  }],
+    },
+    {
+      "path": "pages/cate/cate",
+      "style": {
+        "navigationBarTitleText": "Sunny优购"
+      }
+    },
+    {
+      "path": "pages/cart/cart",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/my/my",
+      "style": {
+        "navigationBarTitleText": "Sunny优购"
+      }
+    }
+  ],
+  "subPackages": [
+    {
+      "root": "subpkg",
+      "pages": [
+        {
+          "path": "goods_detail/goods_detail",
+          "style": {
+            "navigationBarTitleText": "Sunny优购"
+          }
+        },
+        {
+          "path": "goods_list/goods_list",
+          "style": {
+            "navigationBarTitleText": "Sunny优购",
+            "onReachBottomDistance": 150,
+            "enablePullDownRefresh": true,
+            "backgroundColor": "#F8F8F8"
+          }
+        },
+        {
+          "path": "search/search",
+          "style": {
+            "navigationBarTitleText": "Sunny优购",
+            "enablePullDownRefresh": false
+          }
+        },
+        {
+          "path": "cart/cart",
+          "style": {
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "contact/contact",
+          "style": {
+            "navigationBarTitleText": "联系客服"
+          }
+        },
+        {
+          "path": "address-list/address-list",
+          "style": {
+            "navigationBarTitleText": "收货地址"
+          }
+        },
+        {
+          "path": "address-edit/address-edit",
+          "style": {
+            "navigationBarTitleText": "编辑地址"
+          }
+        },
+        {
+          "path": "order/order",
+          "style": {
+            "navigationBarTitleText": "确认订单"
+          }
+        },
+        {
+          "path": "order_list/order_list",
+          "style": {
+            "navigationBarTitleText": "我的订单"
+          }
+        }
+      ]
+    }
+  ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "阳光优购",
+    "navigationBarTitleText": "Sunny优购",
     "navigationBarBackgroundColor": "#C00000",
     "backgroundColor": "#FFFFFF"
   },
   "tabBar": {
     "selectedColor": "#C00000",
-    "list": [{
+    "list": [
+      {
         "pagePath": "pages/home/home",
         "text": "首页",
         "iconPath": "static/tab_icons/home.png",

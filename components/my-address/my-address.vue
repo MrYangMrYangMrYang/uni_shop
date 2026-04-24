@@ -1,12 +1,12 @@
 <template>
-  <view>
+  <view class="my-address u-card--shadow">
     <!-- 选择收货地址的盒子 -->
     <view class="address-choose-box" v-if="JSON.stringify(address) === '{}'">
-      <button type="primary" size="mini" class="btnChooseAddress" @click="chooseAddress">请选择收货地址+</button>
+      <button type="primary" size="mini" class="btnChooseAddress u-btn-primary u-pressable" @click="chooseAddress">请选择收货地址+</button>
     </view>
 
     <!-- 渲染收货信息的盒子 -->
-    <view class="address-info-box" v-else @click="chooseAddress">
+    <view class="address-info-box u-pressable" v-else @click="chooseAddress">
       <view class="row1">
         <view class="row1-left">
           <view class="username">收货人：{{address.userName}}</view>
@@ -37,27 +37,38 @@
       };
     },
 	computed: {
-	  ...mapState('m_user', ['address']),
+	  ...mapState('m_user', ['address', 'token']),
 	  ...mapGetters('m_user', ['addstr'])
 	},
     methods: {
-      ...mapMutations('m_user', ['updateAddress']),
+      ...mapMutations('m_user', ['updateAddress', 'updateRedirectInfo']),
 	  // 选择收货地址
       async chooseAddress() {
-		// uni.chooseAddress()，获取用户收货地址，调起用户编辑收货地址原生界面，并在编辑完成后返回用户选择的地址，需要用户授权scope.address
-		// 返回值是一个数组：第1项为错误对象，第2项为成功之后的收货地址对象
-        const [err, succ] = await uni.chooseAddress().catch(err => err)
-		// 用户成功的选择了收货地址
-        if (err === null && succ.errMsg === 'chooseAddress:ok') {
-          // this.address = succ
-		  // 更新vuex中的收货地址
-          this.updateAddress(succ)
-        }
-		
-		// // 通过调用reAuth()让用户重新授权
-        // if (err && (err.errMsg === 'chooseAddress:fail auth deny' || err.errMsg === 'chooseAddress:fail authorize no response')) {
-        //   this.reAuth()
-        // }
+		// 1. 判断是否登录
+		if (!this.token) {
+			uni.showToast({
+				title: '请先登录以管理收货地址',
+				icon: 'none',
+				duration: 1500
+			})
+			setTimeout(() => {
+				uni.switchTab({
+					url: '/pages/my/my',
+					success: () => {
+						this.updateRedirectInfo({
+							openType: 'switchTab',
+							from: '/pages/cart/cart' // 地址组件通常在购物车页面
+						})
+					}
+				})
+			}, 1500)
+			return
+		}
+
+		// 跳转到自定义地址列表页面，而不是直接调起原生接口
+		uni.navigateTo({
+			url: '/subpkg/address-list/address-list'
+		})
       },
       // 让用户重新授权
       // async reAuth() {
@@ -81,6 +92,12 @@
 </script>
 
 <style lang="scss">
+  .my-address {
+	padding: $space-2;
+	margin-bottom: $space-2;
+	overflow: hidden;
+  }
+
   .address-border {
     display: block;
     width: 100%;
@@ -88,19 +105,19 @@
   }
 
   .address-choose-box {
-    height: 90px;
+    height: 140rpx;
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
   .address-info-box {
-    font-size: 12px;
-    height: 90px;
+    font-size: $font-sm;
+    height: 140rpx;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 0 5px;
+    padding: 0 $space-1;
 
     .row1 {
       display: flex;
@@ -116,7 +133,7 @@
     .row2 {
       display: flex;
       align-items: center;
-      margin-top: 10px;
+        margin-top: $space-2;
 
       .row2-left {
         white-space: nowrap;

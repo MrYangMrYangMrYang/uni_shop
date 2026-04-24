@@ -1,11 +1,10 @@
 <template>
-	<view class="goods-item">
+	<view :class="['goods-item', isGrid ? 'grid-mode' : '']" @click="gotoDetail">
 		<!-- 商品左侧图片区域 -->
-		<view class="goods-item-left">
+		<view class="goods-item-left" v-if="showImage || showRadio">
 			<!-- 使用 v-if 指令控制 radio 组件的显示与隐藏 -->
-			<!-- 存储在购物车中的商品，包含 goods_state 属性，表示商品的勾选状态 -->
-			<radio :checked="goods.goods_state" color="#C00000" v-if="showRadio" @click="radioClickHandler"></radio>
-			<image :src="goods.goods_small_logo || defaultPic" class="goods-pic"></image>
+			<radio :checked="goods.goods_state" color="#C00000" v-if="showRadio" @click.stop="radioClickHandler"></radio>
+			<image :src="goods.goods_small_logo || defaultPic" class="goods-pic u-img-rounded" v-if="showImage" :mode="isGrid ? 'widthFix' : 'scaleToFill'"></image>
 		</view>
 		<!-- 商品右侧信息区域 -->
 		<view class="goods-item-right">
@@ -15,7 +14,7 @@
 				<!-- 商品价格：通过管道符 | 调用过滤器 -->
 				<view class="goods-price">￥{{goods.goods_price | tofixed}}</view>
 				<!-- 商品数量 -->
-				<uni-number-box :min="1" :value="goods.goods_count" @change="numChangeHandler" v-if="showNum"></uni-number-box>
+				<uni-number-box :min="1" :value="goods.goods_count" @change="numChangeHandler" v-if="showNum" @click.native.stop></uni-number-box>
 			</view>
 		</view>
 	</view>
@@ -39,6 +38,16 @@
 			},
 			// 是否展示价格右侧的 NumberBox 组件
 			showNum: {
+				type: Boolean,
+				default: false,
+			},
+			// 是否展示商品图片
+			showImage: {
+				type: Boolean,
+				default: true,
+			},
+			// 是否开启网格布局模式
+			isGrid: {
 				type: Boolean,
 				default: false,
 			},
@@ -70,6 +79,10 @@
 					// 商品的最新数量
 					goods_count: +val
 				})
+			},
+			// 点击商品跳转到商品详情页
+			gotoDetail() {
+				this.$emit('click', this.goods)
 			}
 		},
 		filters: {
@@ -83,21 +96,23 @@
 
 <style lang="scss">
 	 .goods-item {
-	    width: 750rpx;
+	    width: 100%;
 	    box-sizing: border-box;
 	    display: flex;
-	    padding: 10px 5px;
-	    border-bottom: 1px solid #f0f0f0;
+	    padding: $space-2;
+		gap: $space-2;
+	    border-bottom: 1px solid $color-border-1;
+		transition: all 0.3s;
+		background-color: #fff;
 	
 	    .goods-item-left {
-	      margin-right: 5px;
 	      display: flex;
-	      justify-content: space-between;
 	      align-items: center;
+		  gap: $space-2;
 	
 	      .goods-pic {
-	        width: 100px;
-	        height: 100px;
+	        width: 180rpx;
+	        height: 180rpx;
 	        display: block;
 	      }
 	    }
@@ -107,9 +122,16 @@
 	      flex: 1;
 	      flex-direction: column;
 	      justify-content: space-between;
+		  min-width: 0;
 	
 	      .goods-name {
-	        font-size: 13px;
+	        font-size: $font-md;
+			font-weight: 600;
+			line-height: 1.35;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
 	      }
 	
 	      .goods-info-box {
@@ -118,10 +140,49 @@
 	        align-items: center;
 	
 	        .goods-price {
-	          color: #C00000;
-	          font-size: 16px;
+	          color: $color-primary-600;
+	          font-size: $font-lg;
+			  font-weight: 700;
 	        }
 	      }
 	    }
+
+		// 网格模式样式
+		&.grid-mode {
+			flex-direction: column;
+			padding: 0;
+			gap: 0;
+			border-bottom: none;
+			height: 100%;
+			background-color: transparent; // 在网格/瀑布流模式下背景由外层容器控制
+
+			.goods-item-left {
+				width: 100%;
+				.goods-pic {
+					width: 100%;
+					height: auto; // 移除固定高度，由 widthFix 决定
+					display: block; // 消除底部间隙
+					border-radius: $radius-lg $radius-lg 0 0;
+				}
+			}
+
+			.goods-item-right {
+				padding: $space-2;
+				gap: $space-2;
+
+				.goods-name {
+					font-size: $font-sm;
+					-webkit-line-clamp: 2;
+					height: auto; // 瀑布流模式下允许高度自适应
+				}
+
+				.goods-info-box {
+					margin-top: auto;
+					.goods-price {
+						font-size: $font-md;
+					}
+				}
+			}
+		}
 	  }
 </style>
