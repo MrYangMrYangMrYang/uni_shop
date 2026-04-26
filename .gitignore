@@ -1,2 +1,6 @@
+/.hbuilderx
+
 /node_modules
 /unpackage/dist
+
+unpackage 文件夹的作用.txt
