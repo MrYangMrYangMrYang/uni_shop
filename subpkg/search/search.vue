@@ -30,25 +30,36 @@
 </template>
 
 <script>
+	/**
+	 * 搜索页面
+	 * 负责商品搜索、搜索建议展示以及搜索历史记录的管理
+	 */
 	export default {
 		data() {
 			return {
-				// 延时器的 timerId
+				// 延时器的 timerId，用于防抖处理
 				timer: null,
 				// 搜索关键词
 				kw: '',
-				// 搜索结果列表
+				// 搜索结果列表（搜索建议）
 				searchResults: [],
-				// 搜索关键词的历史记录
+				// 搜索关键词的历史记录（原始数组）
 				historyList: []
 			};
 		},
-		// 在 onLoad 生命周期函数中，加载本地存储的搜索历史记录
+		/**
+		 * 页面加载生命周期函数
+		 */
 		onLoad() {
+			// 加载本地存储的搜索历史记录
 			this.historyList = JSON.parse(uni.getStorageSync('kw') || '[]')
 		},
-		// 解决关键字前后顺序的问题
 		computed: {
+			/**
+			 * 格式化后的搜索历史记录
+			 * 解决关键字前后顺序的问题：新搜索的在前面
+			 * @returns {Array} 反转后的历史记录数组
+			 */
 			historys() {
 				// 注意：由于数组是引用类型，所以不要直接基于原数组调用 reverse 方法，以免修改原数组中元素的顺序
 				// 而是应该新建一个内存无关的数组，再进行 reverse 反转
@@ -56,68 +67,84 @@
 			}
 		},
 		methods: {
-			// 搜索框防抖处理
+			/**
+			 * 搜索框输入事件处理（防抖）
+			 * @param {Object} e 输入事件对象
+			 */
 			input(e) {
-				// 清除 timer 对应的延时器
+				// 清除上一次的延时器
 				clearTimeout(this.timer)
-				// 重新启动一个延时器，并把 timerId 赋值给 this.timer
+				// 重新启动一个延时器，延迟 500ms 执行搜索逻辑
 				this.timer = setTimeout(() => {
-					// 如果 500 毫秒内，没有触发新的输入事件，则为搜索关键词赋值
+					// 为搜索关键词赋值
 					this.kw = e.value
 					// 根据关键词，查询搜索建议列表
 					this.getSearchList()
 				}, 500)
 			},
 			
-			// 根据搜索关键词，搜索商品建议列表
+			/**
+			 * 根据搜索关键词获取商品建议列表
+			 */
 			async getSearchList() {
 				// 判断关键词是否为空
 				if (this.kw === '') {
 					this.searchResults = []
 					return
 				}
-				// 发起请求，获取搜索建议列表
+				// 发起网络请求，获取搜索建议
 				const { data: res } = await uni.$http.get('/api/public/v1/goods/qsearch', { query: this.kw })
+				// 请求失败处理
 				if (res.meta.status !== 200) return uni.$showMsg()
+				// 更新搜索结果
 				this.searchResults = res.message
 				
-				// 查询到搜索建议之后，调用 saveSearchHistory() 方法保存搜索关键词
+				// 查询到搜索建议之后，保存搜索关键词到历史记录
 				this.saveSearchHistory()
 			},
 			
-			// 保存搜索关键词为历史记录
+			/**
+			 * 将当前搜索关键词保存到历史记录中
+			 * 包含去重处理和持久化存储
+			 */
 			saveSearchHistory() {
-				// this.historyList.push(this.kw)
-				// 1.解决关键词重复的问题
-				// 将 Array 数组转化为 Set 对象
+				// 1. 解决关键词重复的问题
 				const set = new Set(this.historyList)
-				// 调用 Set 对象的 delete 方法，移除对应的元素
+				// 先删除已存在的相同关键词
 				set.delete(this.kw)
-				// 调用 Set 对象的 add 方法，向 Set 中添加元素
+				// 再添加当前关键词，确保它排在 Set 的最后（反转后就在最前）
 				set.add(this.kw)
-				// 将 Set 对象转化为 Array 数组
+				// 将 Set 转换回数组
 				this.historyList = Array.from(set)
 				
-				// 2.调用 uni.setStorageSync(key, value) 将搜索历史记录持久化存储到本地
+				// 2. 将搜索历史记录持久化存储到本地
 				uni.setStorageSync('kw', JSON.stringify(this.historyList))
 			},
 			
-			// 清空搜索历史记录
+			/**
+			 * 清空搜索历史记录
+			 */
 			cleanHistory() {
-				// 清空 data 中保存的搜索历史
+				// 清空 data 中的数据
 				this.historyList = []
-				// 清空本地存储中记录的搜索历史
+				// 同步清空本地存储
 				uni.setStorageSync('kw', '[]')
 			},
 			
-			// 点击搜索列表项跳转到商品详情页面
+			/**
+			 * 点击搜索建议项跳转到商品详情页
+			 * @param {Object} item 商品对象
+			 */
 			gotoDetail(item) {
 				uni.navigateTo({
-					// 指定详情页面的 URL 地址，并传递 goods_id 参数
 					url: '/subpkg/goods_detail/goods_detail?goods_id=' + item.goods_id
 				})
 			},
-			// 点击搜索历史记录跳转到商品列表页面
+
+			/**
+			 * 点击搜索历史标签跳转到商品列表页
+			 * @param {String} item 搜索关键词
+			 */
 			gotoGoodsList(item) {
 				uni.navigateTo({
 					url: '/subpkg/goods_list/goods_list?query=' + item
@@ -128,6 +155,7 @@
 </script>
 
 <style lang="scss">
+	/* 搜索栏样式定制 */
 	.uni-searchbar {
 		/* #ifndef APP-NVUE */
 		display: flex;
@@ -138,6 +166,7 @@
 		background-color: transparent;
 	}
 	
+	/* 搜索建议列表样式 */
 	.sugg-list {
 		padding: 0 $space-2;
 		.sugg-item {
@@ -149,18 +178,18 @@
 			justify-content: space-between;
 			transition: transform 120ms ease, opacity 120ms ease;
 			border-radius: $radius-md;
+
 			.goods-name {
-			// 文字不允许换行（单行文本）
-			white-space: nowrap;
-			// 溢出部分隐藏
-			overflow: hidden;
-			// 文本溢出后，使用 ... 代替
-			text-overflow: ellipsis;
-			margin-right: $space-1;
+				// 文本溢出隐藏并显示省略号
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				margin-right: $space-1;
 			}
 		}
 	}
 	
+	/* 搜索历史区域样式 */
 	.history-box {
 	    padding: 0 $space-2;
 	

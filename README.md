@@ -1,60 +1,61 @@
-# ☀️ Sunshine优购 (Sunshine Yougou)
+# ☀️ Sunny优购 (Sunny Yougou)
 
 [![Uni-app](https://img.shields.io/badge/Framework-Uni--app-green.svg)](https://uniapp.dcloud.io/)
 [![Vue.js](https://img.shields.io/badge/Library-Vue.js%202.x-brightgreen.svg)](https://vuejs.org/)
 [![License](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 
-`Sunshine优购` 是一款基于 **Uni-app** 框架开发的移动端电商微信小程序。项目采用经典的电商布局，实现了从商品浏览、搜索、分类到购物车及用户结算的完整购物流程。
+`Sunny优购` 是一款基于 **Uni-app** 框架开发的移动端电商微信小程序。项目采用经典的电商布局，实现了从商品浏览、搜索、分类到购物车、收货地址管理、订单支付及在线客服的完整购物流程。
 
 ---
 
 ## 🚀 项目特性
 
-- **跨平台兼容**：利用 Uni-app 的跨端特性，可编译至微信小程序、H5、iOS 及 Android。
-- **高性能搜索**：支持搜索历史缓存、实时关键词联想及商品列表分段加载。
-- **丝滑交互**：内置多种自定义组件，如收货地址选择、商品卡片、吸顶搜索栏等。
-- **状态同步**：通过 Vuex 实现全局购物车状态管理，确保跨页面数据一致性。
-- **极致视觉**：采用 SCSS 进行样式编写，主题色明确，响应式布局适配多种机型。
+- **跨平台兼容**：基于 Uni-app 开发，可编译至微信小程序、H5、App 等多个平台。
+- **分包加载优化**：核心 TabBar 页面位于主包，搜索、详情、订单等功能模块位于 `subpkg` 分包，显著提升首屏加载速度。
+- **高性能交互**：
+  - **瀑布流布局**：商品列表采用左右双列瀑布流展示，视觉体验更佳。
+  - **二级联动**：分类页面实现左侧导航与右侧内容的流畅联动。
+  - **吸顶效果**：搜索框在首页及搜索页支持粘性定位。
+- **状态一致性**：通过 **Vuex** 实现购物车状态、用户信息、收货地址的全局共享与持久化存储。
+- **微信深度集成**：
+  - 支持 **微信一键登录**（Token 机制）。
+  - 对接 **微信原生收货地址** 接口。
+  - 模拟 **微信支付** 完整流程。
+  - 内置 **在线客服** 聊天系统。
 
 ---
 
 ## 🛠️ 技术栈
 
 - **核心框架**：[Uni-app](https://uniapp.dcloud.io/) (Vue.js 2.x)
-- **网络请求**：[@escook/request-miniprogram](https://www.npmjs.com/package/@escook/request-miniprogram)
-- **状态管理**：Vuex
+- **网络请求**：[@escook/request-miniprogram](https://www.npmjs.com/package/@escook/request-miniprogram) (支持请求/响应拦截器)
+- **状态管理**：Vuex (模块化：m_cart, m_user)
 - **样式预处理**：SCSS (Sass)
-- **UI 组件库**：uni-ui & 自定义业务组件
+- **UI 组件库**：uni-ui & 高度定制的业务组件
 
 ---
 
 ## 📦 核心功能模块
 
 ### 1. 首页 (Home)
-- **轮播图**：动态展示热门活动及商品。
-- **导航栏**：快速跳转分类页面。
-- **楼层展示**：精选商品分模块瀑布流展示。
+- **动态运营**：轮播图、分类导航入口。
+- **楼层推荐**：精选商品分模块展示。
 
 ### 2. 商品分类 (Category)
-- **二级联动**：左侧一级分类导航，右侧二级/三级分类商品展示。
-- **平滑滚动**：支持点击定位与丝滑滚动体验。
+- **高效筛选**：左右联动导航，支持点击定位。
 
 ### 3. 搜索系统 (Search)
-- **联想搜索**：输入关键字实时获取匹配商品。
-- **搜索历史**：本地存储用户的搜索足迹。
+- **实时建议**：输入关键词实时联想（防抖处理）。
+- **足迹管理**：本地存储搜索历史，支持一键清空。
 
-### 4. 商品详情 (Goods Detail)
-- **图文详情**：展示商品多维信息及参数。
-- **一键下单**：加入购物车及立即购买功能。
+### 4. 购物流程 (Shop Flow)
+- **商品详情**：富文本渲染详情、图片大图预览、多规格下单。
+- **购物车**：滑动删除（uni-swipe-action）、数量调整、选中计算、TabBar 实时徽标同步。
+- **地址系统**：支持手动编辑与微信导入收货地址。
+- **订单系统**：确认下单、订单列表分页、订单状态流转（待付款/待发货等）。
 
-### 5. 购物车 (Cart)
-- **地址管理**：对接微信原生收货地址 API。
-- **批量操作**：支持修改数量、删除及全选计算。
-- **动态角标**：Tabbar 实时显示购物车商品总数。
-
-### 6. 个人中心 (My)
-- **一键登录**：集成微信快捷登录及 Token 验证。
-- **个人信息**：展示头像、昵称及订单入口。
+### 5. 在线客服 (Contact)
+- **即时通讯**：模拟客服自动回复，提供更贴心的购物导购体验。
 
 ---
 
@@ -62,43 +63,34 @@
 
 ```text
 uni_shop/
-├── components/          # 业务自定义组件
-├── pages/               # 主包页面 (TabBar 页面)
-├── subpkg/              # 分包页面 (优化启动速度)
-├── store/               # Vuex 状态管理
+├── components/          # 业务自定义组件 (my-address, my-goods, my-login 等)
+├── mixins/              # 逻辑混入 (tabbar-badge 全局购物车角标)
+├── pages/               # 主包 TabBar 页面 (home, cate, cart, my)
+├── subpkg/              # 功能分包 (search, goods_detail, goods_list, order, contact 等)
+├── store/               # Vuex 状态管理模块
 ├── static/              # 静态资源 (图标、图片)
-├── mixins/              # 逻辑混入
-├── App.vue              # 应用入口
-├── main.js              # Vue 实例化入口
-├── pages.json           # 页面路由及全局配置
-└── manifest.json        # 应用配置 (AppID、权限等)
+├── App.vue              # 全局生命周期及样式入口
+├── main.js              # 全局配置 (拦截器、全局工具方法)
+└── pages.json           # 页面路由及分包配置
 ```
 
 ---
 
 ## 🏃 快速开始
 
-1. **克隆项目**
-   ```bash
-   git clone git@gitee.com:yangguangbigboy/uni_shop.git
-   ```
-
-2. **安装依赖**
+1. **安装依赖**
    ```bash
    npm install
    ```
 
-3. **运行项目**
-   - 使用 **HBuilderX** 打开项目根目录。
-   - 点击顶部菜单 `运行` -> `运行到小程序模拟器` -> `微信开发者工具`。
-   - *注意：请确保微信开发者工具中已开启服务端口。*
+2. **运行项目**
+   - 使用 **HBuilderX** 打开项目。
+   - 配置微信开发者工具路径。
+   - 点击 `运行` -> `运行到小程序模拟器` -> `微信开发者工具`。
+   - *注意：请在微信开发者工具中开启“不校验合法域名”。*
 
 ---
 
 ## 📝 开源协议
 
 本项目遵循 [ISC License](https://opensource.org/licenses/ISC) 协议。
-
-
-
-

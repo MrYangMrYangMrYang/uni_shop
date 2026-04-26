@@ -1,6 +1,10 @@
+/**
+ * 购物车页面
+ * 展示已添加至购物车的商品列表，支持修改数量、勾选状态及删除商品
+ */
 <template>
 	<view class="u-page u-page--page">
-		<!-- 自定义红色导航栏 (TabBar 模式下不显示返回按钮) -->
+		<!-- 自定义置顶导航栏：兼容不同设备的 statusBarHeight -->
 		<view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="nav-content">
 				<view class="back-box"></view>
@@ -9,94 +13,148 @@
 			</view>
 		</view>
 		
-		<!-- 为固定定位的导航栏占位 -->
+		<!-- 为固定定位的导航栏提供占位高度，确保内容不被遮挡 -->
 		<view :style="{ height: (statusBarHeight + 44) + 'px' }"></view>
 
-		<!-- 空白购物车区域 -->
+		<!-- 空白购物车缺省页：当 cart 数组为空时显示 -->
 		<view class="empty-cart" v-if="cart.length === 0">
 			<image src="/static/cart_empty@2x.png" class="empty-img"></image>
 			<text class="tip-text">空空如也，去选购几件商品吧~</text>
+			<!-- 跳转首页继续购物 -->
 			<view class="go-shopping-btn u-pressable" @click="goHome">去逛逛</view>
 		</view>
 		
-		<!-- 有商品的区域 -->
+		<!-- 购物车商品列表区域 -->
 		<view class="cart-container" v-else>
-			<!-- 购物车商品列表的标题区域 -->
+			<!-- 列表头部卡片：显示店铺图标及商品总数统计 -->
 			<view class="cart-header u-card--shadow">
 				<view class="title-left">
-					<uni-icons type="shop" size="20" color="#C00000"></uni-icons>
+					<uni-icons type="shop" size="20" :color="primaryColor"></uni-icons>
 					<text class="title-text">我的清单</text>
 				</view>
 				<text class="goods-count">共 {{cart.length}} 件商品</text>
 			</view>
 			
-			<!-- 商品列表区域 -->
+			<!-- 商品列表容器：支持侧滑删除操作 -->
 			<uni-swipe-action class="cart-list">
 			    <block v-for="(goods, i) in cart" :key="i">
+					<!-- 滑动操作项：配置 options 按钮 -->
 			        <uni-swipe-action-item :options="options" @click="swipeItemClickHandler(goods)">
 						<view class="cart-list-item u-card--shadow">
-							<my-goods :goods="goods" :show-radio="true" :show-num="true" @radio-change="radioChangeHandler" @num-change="numberChangeHandler" @click="gotoDetail"></my-goods>
+							<!-- 
+							 复用 my-goods 组件：
+							 1. show-radio: 开启左侧复选框
+							 2. show-num: 开启右侧数字步进器
+							 -->
+							<my-goods 
+								:goods="goods" 
+								:show-radio="true" 
+								:show-num="true" 
+								@radio-change="radioChangeHandler" 
+								@num-change="numberChangeHandler" 
+								@click="gotoDetail">
+							</my-goods>
 						</view>
 			        </uni-swipe-action-item>
 			    </block>
 			</uni-swipe-action>
 			
-			<!-- 自定义结算区域组件 -->
+			<!-- 底部全选与结算工具栏 -->
 			<my-settle></my-settle>
 			
-			<!-- 底部 fixed 结算栏占位，避免遮挡 -->
+			<!-- 底部占位：防止固定定位的结算栏遮挡列表最后一项内容 -->
 			<view class="u-fixed-footer-spacer"></view>
 		</view>
 	</view>
 </template>
 
 <script>
-	// 导入自己封装的 mixin 模块
+	// 导入购物车徽标混入逻辑，实时更新 TabBar 徽标数量
 	import badgeMix from '@/mixins/tabbar-badge.js'
-	// 按需导入vuex的辅助函数
+	// 导入 Vuex 映射工具
 	import { mapState, mapMutations } from 'vuex'
 	
 	export default {
-		// 将 badgeMix 混入到当前的页面中进行使用
+		// 混入设置购物车徽标
 		mixins: [badgeMix],
+		
 		data() {
 			return {
-				// 状态栏高度
-				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
+				// 主题色常量，保持 UI 一致性
+				primaryColor: '#C00000',
+				// 设备的系统状态栏高度（用于导航栏适配）
+				statusBarHeight: uni.getSystemInfoSync().statusBarHeight || 0,
+				// 滑动操作按钮配置项
 				options: [{
-					text: '删除', // 显示的文本内容
+					text: '删除',
 					style: {
-						backgroundColor: '#C00000' // 按钮的背景颜色
+						backgroundColor: '#C00000'
 					}
 				}]
 			};
 		},
+
 		computed: {
-			// 将 m_cart 模块中的 cart 数组映射到当前页面中使用
+			// 将 m_cart 模块中的 cart 数组映射到当前组件
 			...mapState('m_cart', ['cart']),
 		},
+
 		methods: {
+			// 映射 m_cart 模块中的 Mutations 方法，用于更新状态和数据持久化
 			...mapMutations('m_cart', ['updateGoodsState','updateGoodsCount','removeGoodsById']),
-			// 获取商品改变后的勾选状态，再通过store提供的方法进行修改
+			
+			/**
+			 * 商品勾选状态改变回调
+			 * @param {Object} e 包含 goods_id 和 goods_state 的变更对象
+			 */
 			radioChangeHandler(e) {
-				// console.log(e) // 输出得到的数据 -> {goods_id: 395, goods_state: false}
 				this.updateGoodsState(e)
 			},
-			// 获取改变后的商品数量，再通过store提供的方法进行状态修改
+			
+			/**
+			 * 商品购买数量改变回调
+			 * @param {Object} e 包含 goods_id 和 goods_count 的变更对象
+			 */
 			numberChangeHandler(e) {
 				this.updateGoodsCount(e)
 			},
-			// 根据id删除对应的商品
+			
+			/**
+			 * 滑动删除按钮点击回调
+			 * @param {Object} goods 待删除的目标商品对象
+			 */
 			swipeItemClickHandler(goods) {
-				this.removeGoodsById(goods.goods_id)
+				uni.showModal({
+					title: '操作提示',
+					content: '确认要从购物车中移除该商品吗？',
+					confirmColor: this.primaryColor,
+					success: (res) => {
+						if (res.confirm) {
+							// 1. 调用 Vuex 方法从列表中移除该商品
+							this.removeGoodsById(goods.goods_id)
+							// 2. 提示用户移除成功
+							uni.showToast({
+								title: '已移除',
+								icon: 'none'
+							})
+						}
+					}
+				})
 			},
-			// 点击商品跳转到商品详情页
+			
+			/**
+			 * 跳转至商品详情页面
+			 * @param {Object} goods 被点击的商品数据对象
+			 */
 			gotoDetail(goods) {
 				uni.navigateTo({
 					url: '/subpkg/goods_detail/goods_detail?goods_id=' + goods.goods_id
 				})
 			},
-			// 跳转到首页
+			
+			/**
+			 * 跳转至首页进行购物
+			 */
 			goHome() {
 				uni.switchTab({
 					url: '/pages/home/home'
@@ -107,13 +165,14 @@
 </script>
 
 <style lang="scss">
+	/* 自定义沉浸式导航栏样式 */
 	  .custom-nav-bar {
 		position: fixed;
 		top: 0;
 		left: 0;
 		width: 100%;
-		background-color: #C00000;
-		z-index: 999;
+		background-color: $color-primary-600;
+		z-index: $z-sticky;
 
 		.nav-content {
 			height: 44px;
@@ -133,7 +192,7 @@
 				flex: 1;
 				text-align: center;
 				color: #FFF;
-				font-size: 12px;
+				font-size: $font-sm;
 				font-weight: 300;
 			}
 
@@ -143,15 +202,13 @@
 		}
 	  }
 
+	/* 购物车列表内容区域容器 */
 	  .cart-container {
 		padding: $space-2;
-		padding-bottom: 2px;
+		padding-bottom: $space-1;
 	  }
 
-	  .address-section {
-		margin-bottom: $space-3;
-	  }
-
+	/* 购物车头部统计卡片样式 */
 	  .cart-header {
 		display: flex;
 		align-items: center;
@@ -183,23 +240,27 @@
 		}
 	  }
 
+	/* 商品列表间距控制 */
 	  .cart-list {
 		display: flex;
 		flex-direction: column;
 		gap: $space-2;
 	  }
 
+	/* 购物车商品卡片项样式 */
 	  .cart-list-item {
 		overflow: hidden;
 		border-radius: $radius-lg;
-		background: #fff;
+		background: $color-bg;
 		margin-bottom: $space-2;
 		
+		/* 深度选择器：移除内部商品项的底边框，交由卡片容器管理 */
 		:deep(.goods-item) {
-			border-bottom: none; // 移除内部边框，由卡片容器控制
+			border-bottom: none;
 		}
 	  }
 
+	/* 购物车空状态缺省样式 */
 	  .empty-cart {
 	    display: flex;
 	    flex-direction: column;

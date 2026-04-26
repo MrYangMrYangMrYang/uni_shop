@@ -1,6 +1,10 @@
+/**
+ * 首页
+ * 展示轮播图、分类导航、楼层商品等核心内容
+ */
 <template>
 	<view class="u-page u-page--page">
-		<!-- 使用自定义的搜索组件 -->
+		<!-- 搜索区域：置顶吸顶 -->
 		<view class="search-box u-sticky-top u-header-brand u-header-elevated u-brand-header">
 			<my-search @click="gotoSearch"></my-search>
 		</view>
@@ -15,7 +19,7 @@
 			</swiper-item>
 		</swiper>
 
-		<!-- 轻量分区标题（提升层级，不加业务） -->
+		<!-- 推荐标题区域 -->
 		<view class="section-title">
 			<text class="section-title__main">为你推荐</text>
 			<text class="section-title__sub">精选好物 · 今日上新</text>
@@ -31,20 +35,20 @@
 			</view>
 		</view>
 		
-		<!-- 楼层区域 -->
+		<!-- 楼层展示区域 -->
 		<view class="floor-list">
 			<view class="floor-item u-card--shadow" v-for="(item, i) in floorList" :key="i">
-				<!-- 楼层标题 -->
+				<!-- 楼层标题图 -->
 				<view class="floor-header">
 					<image :src="item.floor_title.image_src" class="floor-title-img" mode="widthFix"></image>
 				</view>
-				<!-- 楼层内容 -->
+				<!-- 楼层内容：采用左一右四布局 -->
 				<view class="floor-img-box">
 					<!-- 左侧大图 -->
 					<navigator class="left-img-box u-pressable" :url="item.product_list[0].url">
 						<image class="u-img-rounded floor-img" :src="item.product_list[0].image_src" mode="aspectFill"></image>
 					</navigator>
-					<!-- 右侧小图 -->
+					<!-- 右侧四个小图 -->
 					<view class="right-img-box">
 						<navigator class="right-img-item u-pressable" v-for="(item2, i2) in item.product_list.slice(1)" :key="i2" :url="item2.url">
 							<image class="u-img-rounded floor-img" :src="item2.image_src" mode="aspectFill"></image>
@@ -54,7 +58,7 @@
 			</view>
 		</view>
 
-		<!-- 到底了提示 -->
+		<!-- 底部提示 -->
 		<view class="load-more">
 			<view class="line"></view>
 			<text class="text">已经到底啦</text>
@@ -64,65 +68,95 @@
 </template>
 
 <script>
-	// 导入自己封装的 mixin 模块
+	// 导入购物车徽标混入
 	import badgeMix from '@/mixins/tabbar-badge.js'
 	
 	export default {
-		// 将 badgeMix 混入到当前的页面中进行使用
+		// 混入设置购物车徽标的逻辑
 		mixins: [badgeMix],
 		
 		data() {
 			return {
-				// 轮播图的数据列表，默认为空数组
+				// 轮播图列表
 				swiperList: [],
-				// 分类导航的数据列表
+				// 分类导航列表
 				navList: [],
-				// 楼层的数据列表
+				// 楼层展示列表
 				floorList: [],
 			}
 		},
+		
+		/**
+		 * 页面加载生命周期
+		 */
 		onLoad() {
-			// 在小程序页面刚加载的时候，调用获取数据的方法
+			// 初始化请求首页各项数据
 			this.getSwiperList()
 			this.getNavList()
 			this.getFloorList()
 		},
+		
 		methods: {
-			// 获取轮播图数据的方法
+			/**
+			 * 获取轮播图数据
+			 * 请求接口获取首页轮播图展示所需数据
+			 */
 			async getSwiperList() {
-				// 发起请求
 				const { data: res } = await uni.$http.get('/api/public/v1/home/swiperdata')
-				// 请求失败
 				if (res.meta.status !== 200) return uni.$showMsg()
-				// 请求成功，为 data 中的数据赋值
 				this.swiperList = res.message
 			},
-			// 获取分类导航数据的方法
+			
+			/**
+			 * 获取分类导航数据
+			 * 请求接口获取首页分类导航按钮数据
+			 */
 			async getNavList() {
 				const { data: res } = await uni.$http.get('/api/public/v1/home/catitems')
 				if (res.meta.status !== 200) return uni.$showMsg()
 				this.navList = res.message
 			},
-			// nav-item 项被点击执行的事件处理函数
+			
+			/**
+			 * 分类导航项点击事件处理
+			 * @param {Object} item 点击的导航项数据对象
+			 */
 			navClickHandler(item) {
-				// 统一跳转到分类页
-				uni.switchTab({
-					url: '/pages/cate/cate'
-				})
+				// 目前逻辑统一跳转到分类 Tab 页面
+				if (item.name === '分类') {
+					uni.switchTab({
+						url: '/pages/cate/cate'
+					})
+				}
 			},
-			// 定义获取楼层列表数据的方法
+			
+			/**
+			 * 获取并处理楼层数据
+			 * 1. 请求楼层原始数据
+			 * 2. 对 navigator_url 进行清洗，转换为项目可用的 url 格式
+			 * 3. 过滤特定无效数据
+			 */
 			async getFloorList() {
 				const { data: res } = await uni.$http.get('/api/public/v1/home/floordata')
 				if (res.meta.status !== 200) return uni.$showMsg()
-				// 通过双层 forEach 循环，处理 URL 地址
+				
+				// 预处理 URL：将后端返回的 navigator_url 转换为项目内可用的 url
 				res.message.forEach(floor => {
 					floor.product_list.forEach(prod => {
+						// 拼接出商品列表页面的跳转路径
 						prod.url = '/subpkg/goods_list/goods_list?' + prod.navigator_url.split('?')[1]
 					})
 				})
-				// 过滤掉没有数据或标题为“冲锋衣”的楼层
-				this.floorList = res.message.filter(floor => floor.product_list.length > 0 && floor.floor_title.name !== '冲锋衣')
+				
+				// 数据清洗：过滤无效楼层并排除特定演示楼层
+				this.floorList = res.message.filter(floor => 
+					floor.product_list.length > 0 && floor.floor_title.name !== '冲锋衣'
+				)
 			},
+			
+			/**
+			 * 跳转至搜索页面
+			 */
 			gotoSearch() {
 				uni.navigateTo({
 					url: '/subpkg/search/search'
@@ -133,6 +167,12 @@
 </script>
 
 <style lang="scss">
+	/* 页面整体背景 */
+	.u-page {
+		background-color: $color-bg-base;
+	}
+
+	/* 轮播图样式控制 */
 	swiper {
 		height: 330rpx;
 		.swiper-item,
@@ -142,6 +182,7 @@
 		}
 	}
 	
+	/* 分类导航网格布局样式 */
 	.nav-list {
 		margin: $space-2;
 		padding: $space-3 $space-2;
@@ -179,6 +220,7 @@
 		}
 	}
 
+	/* 业务分区标题装饰样式 */
 	.section-title {
 		margin: $space-2;
 		display: flex;
@@ -213,11 +255,7 @@
 		}
 	}
 	
-	.floor-title {
-	    width: 100%;
-	    height: 60rpx;
-	  }
-
+	/* 楼层商品展示样式 */
 	.floor-list {
 		display: flex;
 		flex-direction: column;
@@ -227,10 +265,10 @@
 
 	.floor-item {
 		overflow: hidden;
-		padding: $space-4; // 增加内边距
+		padding: $space-4;
 		background: #fff;
 		border-radius: $radius-lg;
-		margin-bottom: $space-1; // 增加卡片间隙
+		margin-bottom: $space-1;
 	}
 
 	.floor-header {
@@ -238,18 +276,19 @@
 		padding: $space-2 0;
 
 		.floor-title-img {
-			width: 100%; // 让标题占满宽度，从而变大
+			width: 100%;
 			display: block;
 		}
 	}
 	
+	/* 楼层图片左一右四比例控制 */
 	.floor-img-box {
 		display: flex;
 		gap: 10rpx;
-		height: 440rpx; // 设定一个标准高度，确保左右对齐
+		height: 440rpx;
 		
 		.left-img-box {
-			flex: 2; // 占 2/5 宽度
+			flex: 2;
 			height: 100%;
 			
 			.floor-img {
@@ -261,7 +300,7 @@
 		}
 
 		.right-img-box {
-			flex: 3; // 占 3/5 宽度
+			flex: 3;
 			display: flex;
 			flex-wrap: wrap;
 			justify-content: space-between;
@@ -270,7 +309,7 @@
 			
 			.right-img-item {
 				width: 48.5%; 
-				height: 48.5%; // 确保两行分布
+				height: 48.5%;
 				
 				.floor-img {
 					width: 100%;
@@ -282,6 +321,7 @@
 		}
 	}
 
+	/* 图片交互动效 */
 	.floor-img {
 		display: block;
 		transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -292,6 +332,7 @@
 		}
 	}
 
+	/* 页面底部加载完成提示 */
 	.load-more {
 		display: flex;
 		align-items: center;

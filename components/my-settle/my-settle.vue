@@ -1,16 +1,20 @@
+<!-- 
+  结算组件
+  用于购物车底部，展示合计金额、全选控制以及跳转结算
+-->
 <template>
   <view class="my-settle-container u-fixed-footer">
-    <!-- 全选 -->
+    <!-- 全选控制区域 -->
     <label class="radio" @click="changeAllState">
-      <radio color="#C00000" :checked="isFullCheck" /><text>全选</text>
+      <radio :color="primaryColor" :checked="isFullCheck" /><text>全选</text>
     </label>
 
-    <!-- 合计 -->
+    <!-- 合计金额展示 -->
     <view class="amount-box">
       合计:<text class="amount">￥{{checkedGoodsAmount}}</text>
     </view>
 
-    <!-- 结算按钮 -->
+    <!-- 结算按钮：展示已选商品数量 -->
     <view class="btn-settle u-btn-primary u-pressable" @click="settlement">结算({{checkedCount}})</view>
   </view>
 </template>
@@ -18,21 +22,35 @@
 <script>
   import { mapGetters, mapMutations, mapState } from 'vuex'
 
+  /**
+   * 结算栏组件
+   * 负责购物车页面的全选控制、合计金额展示、以及发起结算与支付流程
+   */
   export default {
+    name: 'my-settle',
     data() {
       return {
-        // 设置倒计时的秒数
+        // 登录倒计时秒数
         seconds: 3,
-        // 定时器的 Id
-        timer: null
+        // 倒计时定时器引用
+        timer: null,
+        // 主题色，与全局样式保持一致
+        primaryColor: '#C00000'
       };
     },
     computed: {
+      // 映射购物车模块的 Getters：已选商品数量、总商品数、已选商品总金额
       ...mapGetters('m_cart', ['checkedCount', 'total', 'checkedGoodsAmount']),
+      // 映射用户模块的 Getters 和 State：完整地址字符串、登录 Token
       ...mapGetters('m_user', ['addstr']),
       ...mapState('m_user', ['token']),
       ...mapState('m_cart', ['cart']),
-	  // 判断选中的数量是否与全部商品数相等
+      
+	  /**
+       * 判断是否处于全选状态
+       * 逻辑：当前购物车中所有商品的数量是否等于已勾选商品的数量
+       * @returns {Boolean} 是否全选
+       */
       isFullCheck() {
         return this.total === this.checkedCount
       }
@@ -41,112 +59,118 @@
       ...mapMutations('m_cart', ['updateAllGoodsState']),
       ...mapMutations('m_user', ['updateRedirectInfo']),
 	  
-	  // 修改购物车中所有商品的选中状态
+	  /**
+       * 切换全选/全不选状态的回调逻辑
+       */
       changeAllState() {
-		// !this.isFullCheck 表示：当前全选按钮的状态取反之后，就是最新的勾选状态
+        // 将当前全选状态取反后更新到 Vuex
         this.updateAllGoodsState(!this.isFullCheck)
       },
-      // 用户点击了结算按钮
+
+      /**
+       * 点击结算按钮的处理逻辑
+       * 1. 验证是否有选中的商品
+       * 2. 验证用户是否登录
+       * 3. 未登录时开启倒计时提示并自动跳转登录页
+       * 4. 已登录且有选中商品时跳转到订单结算页
+       */
       settlement() {
+        // 1. 判断是否勾选了商品
         if (!this.checkedCount) return uni.$showMsg('请选择要结算的商品！')
+        
+        // 2. 判断用户是否登录
         if (!this.token) return this.delayNavigate()
         
-        // 跳转到订单页面
+        // 3. 跳转到订单详情/确认页面
         uni.navigateTo({
           url: '/subpkg/order/order'
         })
       },
-	  // 微信支付
+
+	  /**
+       * 微信支付完整流程逻辑（业务参考）
+       * 包含：创建订单 -> 获取预支付参数 -> 发起微信支付 -> 验证支付结果
+       */
       async payOrder() {
-        // 1. 创建订单
-        // 1.1 组织订单的信息对象
+        // 1. 构造创建订单所需的参数对象
         const orderInfo = {
-          // 开发期间，注释掉真实的订单价格，
-          // order_price: this.checkedGoodsAmount,
-          // 写死订单总价为 1 分钱
-          order_price: 0.01,
+          order_price: 0.01, // 此处仅为演示，实际应使用 this.checkedGoodsAmount
           consignee_addr: this.addstr,
-		  // 返回服务器所需要的商品信息数组
           goods: this.cart.filter(x => x.goods_state).map(x => ({
             goods_id: x.goods_id,
             goods_number: x.goods_count,
             goods_price: x.goods_price
           }))
         }
-		// console.log(orderInfo);
 
-        // 1.2 发起请求创建订单
+        // 2. 发起后端接口请求创建订单
         const { data: res } = await uni.$http.post('/api/public/v1/my/orders/create', orderInfo)
-		// console.log(res);
         if (res.meta.status !== 200) return uni.$showMsg('创建订单失败！')
-        // 1.3 得到服务器响应的“订单编号”
         const orderNumber = res.message.order_number
-		// console.log(orderNumber);
 
-        // 2. 订单预支付
-        // 2.1 发起请求获取订单的支付信息
+        // 3. 根据订单号获取微信预支付相关的参数（payInfo）
         const { data: res2 } = await uni.$http.post('/api/public/v1/my/orders/req_unifiedorder', { order_number: orderNumber })
-        // 2.2 预付订单生成失败
         if (res2.meta.status !== 200) return uni.$showMsg('预付订单生成失败！')
-        // 2.3 得到订单支付相关的必要参数
         const payInfo = res2.message.pay
 
-        // 3. 发起微信支付
-        // 3.1 调用 uni.requestPayment() 发起微信支付
+        // 4. 调用微信原生支付接口发起支付请求
         const [err, succ] = await uni.requestPayment(payInfo)
-        // 3.2 未完成支付
         if (err) return uni.$showMsg('订单未支付！')
-        // 3.3 完成了支付，进一步查询支付的结果
+        
+        // 5. 支付完成后，调用后端接口查询订单状态，确保支付成功
         const { data: res3 } = await uni.$http.post('/api/public/v1/my/orders/chkOrder', { order_number: orderNumber })
-        // 3.4 检测到订单未支付
         if (res3.meta.status !== 200) return uni.$showMsg('订单未支付！')
-        // 3.5 检测到订单支付完成
+        
+        // 6. 支付成功提示
         uni.showToast({
           title: '订单支付完成！',
           icon: 'success'
         })
       },
-      // 未登录时，延时导航到登陆页面页面
+
+      /**
+       * 未登录时的延时导航提示逻辑
+       * 开启一个 3 秒的倒计时，每秒更新一次 Toast 提示，倒计时结束后跳转到登录页
+       */
       delayNavigate() {
-		// 重置倒计时秒数
+        // 重置倒计时秒数
         this.seconds = 3
+        // 立即显示第一次提示
         this.showTips(this.seconds)
-		// 开启定时器
+
+        // 创建定时器
         this.timer = setInterval(() => {
-		  // 秒数自减
           this.seconds--
           if (this.seconds <= 0) {
-			// 清除定时器
+            // 倒计时结束，清除定时器并执行跳转
             clearInterval(this.timer)
-			// 跳转到登录页面
             uni.switchTab({
               url: '/pages/my/my',
-			  // 成功后的回调函数
               success: () => {
-				// 调用 vuex 的 updateRedirectInfo 方法，把跳转信息存储到 Store 中
+                // 存储来源信息：登录成功后跳转回购物车页面
                 this.updateRedirectInfo({
-				  // 跳转的方式
                   openType: 'switchTab',
-				  // 从哪个页面跳转过去的
                   from: '/pages/cart/cart'
                 })
               }
             })
-			// 终止后续代码的运行（当秒数为 0 时，不再展示 toast 提示消息）
             return
           }
-		  // 根据最新的秒数，进行消息提示
+          // 每秒更新一次提示内容
           this.showTips(this.seconds)
         }, 1000)
       },
-      // 展示倒计时的提示消息
+
+      /**
+       * 封装倒计时提示消息
+       * @param {Number} n 当前剩余的秒数
+       */
       showTips(n) {
-		// 调用 uni.showToast() 方法，展示提示消息
         uni.showToast({
-          icon: 'none', // 不展示任何图标
+          icon: 'none',
           title: '请登录后再结算！' + n + '秒之后自动跳转到登录页',
-          mask: true,  // 为页面添加透明遮罩，防止点击穿透
-          duration: 1500 // 1.5 秒后自动消失
+          mask: true, // 防止点击穿透
+          duration: 1500
         })
       }
     }
@@ -154,20 +178,23 @@
 </script>
 
 <style lang="scss">
+  /* 结算栏容器：固定在底部 */
   .my-settle-container {
     height: 50px;
-    background-color: white;
+    background-color: $color-bg;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 14px;
-    padding-left: 5px;
+    font-size: $font-md;
+    padding-left: $space-1;
 
+    /* 全选 radio 区域 */
     .radio {
       display: flex;
       align-items: center;
     }
 
+    /* 合计金额显示区域 */
     .amount-box {
       .amount {
         color: $color-primary-600;
@@ -175,6 +202,7 @@
       }
     }
 
+    /* 结算按钮样式 */
     .btn-settle {
       height: 50px;
       line-height: 50px;
