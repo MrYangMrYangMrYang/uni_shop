@@ -1,6 +1,23 @@
 /.hbuilderx
 
-/node_modules
-/unpackage/dist
+.hbuilderx
+.DS_Store
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.log*
 
+node_modules
+package-lock.json
+yarn.lock
+
+unpackage
 unpackage 文件夹的作用.txt
+/dist
+
+.vscode/
+*.md
+!README.md
