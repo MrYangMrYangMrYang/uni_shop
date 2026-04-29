@@ -152,31 +152,68 @@
       }
     },
     methods: {
-      // 映射 m_user 和 m_cart 模块的 mutations
+      // 映射 m_user 模块的 mutations
       ...mapMutations('m_user', ['updateAddress', 'updateUserInfo', 'updateToken']),
-      ...mapMutations('m_cart', ['clearCart']),
       
       /**
        * 用户退出登录
-       * 包含确认提示，成功后清空用户数据、地址信息、Token 及购物车
+       * 包含确认提示、loading 动画、成功反馈及数据清理
+       * 交互流程：确认弹窗 → loading → 清理数据 → 震动 + Toast → 完成
+       * 注意：购物车数据保留在本地存储中，重新登录后可继续使用
        */
       async logout() {
-        // 弹出退出登录确认框
+        // 1. 弹出退出登录确认框（带警告样式）
         const [err, succ] = await uni.showModal({
-          title: '提示',
-          content: '确认退出登录吗？',
-          confirmColor: this.primaryColor
+          title: '退出登录',
+          content: '确定要退出当前账号吗？',
+          confirmText: '确认退出',
+          confirmColor: this.primaryColor,
+          cancelText: '再想想',
+          cancelColor: '#999999'
         }).catch(err => err)
 
-        // 用户点击了确认按钮
-        if (succ && succ.confirm) {
-          // 1. 清空 Vuex 中的用户信息和收货地址
+        // 用户点击了取消按钮
+        if (!succ || !succ.confirm) return
+
+        // 2. 显示 loading 提示（防止重复点击）
+        uni.showLoading({
+          title: '正在退出...',
+          mask: true
+        })
+
+        try {
+          // 3. 模拟短暂延迟（提升交互感知，让用户看到 loading）
+          await new Promise(resolve => setTimeout(resolve, 500))
+
+          // 4. 清空 Vuex 中的用户数据和 Token
           this.updateAddress({})
           this.updateUserInfo({})
           this.updateToken('')
-          // 2. 清空购物车数据
-          this.clearCart()
-          // 3. (可选) 如果有需要可以跳转到登录页或首页
+
+          // 5. 隐藏 loading
+          uni.hideLoading()
+
+          // 6. 显示退出成功提示（使用自定义样式）
+          uni.showToast({
+            title: '已安全退出',
+            icon: 'success',
+            duration: 1500,
+            mask: true
+          })
+
+          // 7. 延迟后可执行额外操作（如跳转首页等）
+          // 当前设计：停留在"我的"页面，自动切换到未登录状态
+
+        } catch (error) {
+          // 错误处理：隐藏 loading 并提示用户
+          uni.hideLoading()
+          console.error('退出登录失败:', error)
+          
+          uni.showToast({
+            title: '退出失败，请重试',
+            icon: 'none',
+            duration: 2000
+          })
         }
       },
 

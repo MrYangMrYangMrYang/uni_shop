@@ -1,23 +1,32 @@
 /**
- * 购物车页面
+ * 购物车页面（TabBar 页面）
  * 展示已添加至购物车的商品列表，支持修改数量、勾选状态及删除商品
+ * 自定义导航栏，与分包页面风格保持一致
  */
 <template>
 	<view class="u-page u-page--page">
-		<!-- 自定义置顶导航栏：兼容不同设备的 statusBarHeight -->
+		<!-- 自定义导航栏（与分包页面风格一致） -->
 		<view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="nav-content">
-				<view class="back-box"></view>
+				<view class="back-box u-pressable" @click="goBack">
+					<uni-icons type="arrowleft" size="18" color="#FFF"></uni-icons>
+				</view>
 				<text class="nav-title">Sunny优购</text>
-				<view class="placeholder"></view>
 			</view>
 		</view>
-		
-		<!-- 为固定定位的导航栏提供占位高度，确保内容不被遮挡 -->
+
+		<!-- 导航栏占位高度 -->
 		<view :style="{ height: (statusBarHeight + 44) + 'px' }"></view>
 
-		<!-- 空白购物车缺省页：当 cart 数组为空时显示 -->
-		<view class="empty-cart" v-if="cart.length === 0">
+		<!-- 未登录状态：提示用户先登录才能查看购物车 -->
+		<view class="login-tip" v-if="!token">
+			<image src="/static/cart_empty@2x.png" class="empty-img"></image>
+			<text class="tip-text">您还未登录，登录后可查看购物车</text>
+			<view class="go-login-btn u-pressable" @click="goLogin">去登录</view>
+		</view>
+
+		<!-- 已登录状态：空白购物车缺省页（当 cart 数组为空时显示） -->
+		<view class="empty-cart" v-else-if="cart.length === 0">
 			<image src="/static/cart_empty@2x.png" class="empty-img"></image>
 			<text class="tip-text">空空如也，去选购几件商品吧~</text>
 			<!-- 跳转首页继续购物 -->
@@ -82,7 +91,7 @@
 			return {
 				// 主题色常量，保持 UI 一致性
 				primaryColor: '#C00000',
-				// 设备的系统状态栏高度（用于导航栏适配）
+				// 设备状态栏高度（用于导航栏适配）
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight || 0,
 				// 滑动操作按钮配置项
 				options: [{
@@ -97,6 +106,8 @@
 		computed: {
 			// 将 m_cart 模块中的 cart 数组映射到当前组件
 			...mapState('m_cart', ['cart']),
+			// 将 m_user 模块中的 token 映射到当前组件（用于判断登录状态）
+			...mapState('m_user', ['token']),
 		},
 
 		methods: {
@@ -159,33 +170,61 @@
 				uni.switchTab({
 					url: '/pages/home/home'
 				})
+			},
+
+			/**
+			 * 返回上一页（导航栏返回按钮）
+			 */
+			goBack() {
+				uni.navigateBack({ fail: () => {
+					uni.switchTab({ url: '/pages/home/home' })
+				}})
+			},
+
+			/**
+			 * 跳转至登录页面（用于未登录用户）
+			 * 登录成功后会自动返回购物车页面
+			 */
+			goLogin() {
+				// 保存当前页面信息，登录成功后可返回
+				this.$store.commit('m_user/updateRedirectInfo', {
+					openType: 'switchTab',
+					from: '/pages/cart/cart'
+				})
+				// 跳转到我的页面（包含登录组件）
+				uni.switchTab({
+					url: '/pages/my/my'
+				})
 			}
 		}
 	}
 </script>
 
 <style lang="scss">
-	/* 自定义沉浸式导航栏样式 */
-	  .custom-nav-bar {
+	/* 自定义导航栏（与分包页面风格一致） */
+	.custom-nav-bar {
 		position: fixed;
 		top: 0;
 		left: 0;
 		width: 100%;
-		background-color: $color-primary-600;
-		z-index: $z-sticky;
+		background-color: #C00000;
+		z-index: 999;
 
 		.nav-content {
 			height: 44px;
 			display: flex;
 			align-items: center;
-			padding: 0 $space-2;
 
 			.back-box {
-				width: 50px;
+				padding: 0 8rpx;
 				height: 100%;
 				display: flex;
 				align-items: center;
-				justify-content: center;
+				justify-content: flex-start;
+
+				&:active {
+					opacity: 0.7;
+				}
 			}
 
 			.nav-title {
@@ -194,13 +233,10 @@
 				color: #FFF;
 				font-size: $font-sm;
 				font-weight: 300;
-			}
-
-			.placeholder {
-				width: 50px;
+				margin-right: 50rpx;
 			}
 		}
-	  }
+	}
 
 	/* 购物车列表内容区域容器 */
 	  .cart-container {
@@ -281,6 +317,42 @@
 		}
 
 		.go-shopping-btn {
+			margin-top: $space-6;
+			padding: $space-2 $space-6;
+			background-color: $color-primary-600;
+			color: #fff;
+			font-size: $font-sm;
+			border-radius: $radius-pill;
+			box-shadow: 0 8rpx 20rpx rgba(192, 0, 0, 0.2);
+			
+			&:active {
+				transform: scale(0.96);
+				opacity: 0.9;
+			}
+		}
+	  }
+
+	/* 未登录提示样式 */
+	  .login-tip {
+	    display: flex;
+	    flex-direction: column;
+	    align-items: center;
+	    padding-top: 200rpx;
+		
+		.empty-img {
+			width: 240rpx;
+			height: 240rpx;
+			opacity: 0.6;
+		}
+
+		.tip-text {
+			margin-top: $space-4;
+			font-size: $font-md;
+			color: $color-text-300;
+			font-weight: 500;
+		}
+
+		.go-login-btn {
 			margin-top: $space-6;
 			padding: $space-2 $space-6;
 			background-color: $color-primary-600;

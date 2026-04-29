@@ -201,7 +201,6 @@
 					success: (res) => {
 						if (res.confirm) {
 						  this.addToCart(goods)
-						  uni.vibrateShort() // 震动反馈
 						  
 						  // 加入成功后引导查看
 						  setTimeout(() => {
