@@ -52,8 +52,10 @@
 <script>
 	// 导入 Vuex 映射工具
 	import { mapState, mapMutations, mapGetters } from 'vuex'
+	import authGuard from '@/mixins/auth-guard.js'
 	
 	export default {
+		mixins: [authGuard],
 		data() {
 			return {
 				// 商品详情数据对象
@@ -84,10 +86,7 @@
 		},
 
 		computed: {
-			// 映射购物车商品总数，用于更新导航栏徽标
 			...mapGetters('m_cart', ['total']),
-			// 映射用户登录状态
-			...mapState('m_user', ['token']),
 		},
 
 		watch: {
@@ -118,7 +117,6 @@
 		methods: {
 			// 映射 Vuex 变更方法
 			...mapMutations('m_cart', ['addToCart']),
-			...mapMutations('m_user', ['updateRedirectInfo']),
 			
 			/**
 			 * 获取商品详情数据
@@ -165,23 +163,7 @@
 			 * @param {Object} e 点击按钮的配置对象
 			 */
 			buttonClick(e) {
-				// 1. 拦截未登录状态，引导至登录页
-				if (!this.token) {
-					uni.showToast({ title: '请先登录！', icon: 'none', duration: 1500 })
-					setTimeout(() => {
-						uni.switchTab({
-							url: '/pages/my/my',
-							success: () => {
-								// 记录重定向信息，以便登录后返回
-								this.updateRedirectInfo({
-									openType: 'switchTab',
-									from: '/subpkg/goods_detail/goods_detail?goods_id=' + this.goods_info.goods_id
-								})
-							}
-						})
-					}, 1500)
-					return
-				}
+				if (!this.checkLogin('/subpkg/goods_detail/goods_detail?goods_id=' + this.goods_info.goods_id)) return
 
 				// 2. 根据按钮文字执行不同业务
 				if (e.content.text === '加入购物车') {

@@ -34,19 +34,17 @@
 
 <script>
   import { mapState, mapMutations, mapGetters } from 'vuex'
+  import authGuard from '@/mixins/auth-guard.js'
 
-  /**
-   * 收货地址管理组件
-   * 负责展示已选收货地址、引导用户选择地址、以及地址列表的自动加载逻辑
-   */
   export default {
     name: 'my-address',
+    mixins: [authGuard],
     data() {
       return {};
     },
 	computed: {
       // 映射 m_user 模块的状态
-	  ...mapState('m_user', ['address', 'token', 'addressList']),
+	  ...mapState('m_user', ['address', 'addressList']),
       // 映射 m_user 模块的 Getters，获取拼接后的完整地址字符串
 	  ...mapGetters('m_user', ['addstr', 'defaultAddress'])
 	},
@@ -68,37 +66,11 @@
       }
     },
     methods: {
-      ...mapMutations('m_user', ['updateAddress', 'updateRedirectInfo']),
+      ...mapMutations('m_user', ['updateAddress']),
       
-	  /**
-       * 选择收货地址的处理逻辑
-       * 1. 验证用户登录状态
-       * 2. 未登录：提示并引导至登录页，记录重定向信息以便登录后跳回购物车
-       * 3. 已登录：跳转至地址管理列表页面
-       */
       async chooseAddress() {
-		if (!this.token) {
-			uni.showToast({
-				title: '请先登录以管理收货地址',
-				icon: 'none',
-				duration: 1500
-			})
-			setTimeout(() => {
-				uni.switchTab({
-					url: '/pages/my/my',
-					success: () => {
-                        // 记录来源信息：页面路径和打开方式
-						this.updateRedirectInfo({
-							openType: 'switchTab',
-							from: '/pages/cart/cart'
-						})
-					}
-				})
-			}, 1500)
-			return
-		}
+		if (!this.checkLogin('/pages/cart/cart', '请先登录以管理收货地址')) return
 
-		// 已登录状态，直接跳转到自定义地址管理页面
 		uni.navigateTo({
 			url: '/subpkg/address-list/address-list'
 		})

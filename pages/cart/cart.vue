@@ -80,20 +80,15 @@
 <script>
 	// 导入购物车徽标混入逻辑，实时更新 TabBar 徽标数量
 	import badgeMix from '@/mixins/tabbar-badge.js'
-	// 导入 Vuex 映射工具
+	import customNavbar from '@/mixins/custom-navbar.js'
 	import { mapState, mapMutations } from 'vuex'
 	
 	export default {
-		// 混入设置购物车徽标
-		mixins: [badgeMix],
+		mixins: [badgeMix, customNavbar],
 		
 		data() {
 			return {
-				// 主题色常量，保持 UI 一致性
 				primaryColor: '#C00000',
-				// 设备状态栏高度（用于导航栏适配）
-				statusBarHeight: uni.getSystemInfoSync().statusBarHeight || 0,
-				// 滑动操作按钮配置项
 				options: [{
 					text: '删除',
 					style: {
@@ -170,15 +165,6 @@
 				uni.switchTab({
 					url: '/pages/home/home'
 				})
-			},
-
-			/**
-			 * 返回上一页（导航栏返回按钮）
-			 */
-			goBack() {
-				uni.navigateBack({ fail: () => {
-					uni.switchTab({ url: '/pages/home/home' })
-				}})
 			},
 
 			/**

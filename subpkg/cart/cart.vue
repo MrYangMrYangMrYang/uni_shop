@@ -61,13 +61,12 @@
 
 <script>
 	import { mapState, mapMutations } from 'vuex'
+	import customNavbar from '@/mixins/custom-navbar.js'
 	
 	export default {
+		mixins: [customNavbar],
 		data() {
 			return {
-				// 状态栏高度，用于自定义导航栏适配
-				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
-				// 侧滑删除按钮配置
 				options: [{
 					text: '删除',
 					style: {
@@ -118,16 +117,6 @@
 				})
 			},
 			
-			/**
-			 * 返回上一页
-			 */
-			goBack() {
-				uni.navigateBack()
-			},
-			
-			/**
-			 * 跳转到首页（用于空购物车时的引导）
-			 */
 			goHome() {
 				uni.switchTab({
 					url: '/pages/home/home'

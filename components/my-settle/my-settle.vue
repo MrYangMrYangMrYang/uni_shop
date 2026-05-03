@@ -21,13 +21,11 @@
 
 <script>
   import { mapGetters, mapMutations, mapState } from 'vuex'
+  import authGuard from '@/mixins/auth-guard.js'
 
-  /**
-   * 结算栏组件
-   * 负责购物车页面的全选控制、合计金额展示、以及发起结算与支付流程
-   */
   export default {
     name: 'my-settle',
+    mixins: [authGuard],
     data() {
       return {
         // 登录倒计时秒数
@@ -43,7 +41,6 @@
       ...mapGetters('m_cart', ['checkedCount', 'total', 'checkedGoodsAmount']),
       // 映射用户模块的 Getters 和 State：完整地址字符串、登录 Token
       ...mapGetters('m_user', ['addstr']),
-      ...mapState('m_user', ['token']),
       ...mapState('m_cart', ['cart']),
       
 	  /**
@@ -57,7 +54,6 @@
     },
     methods: {
       ...mapMutations('m_cart', ['updateAllGoodsState']),
-      ...mapMutations('m_user', ['updateRedirectInfo']),
 	  
 	  /**
        * 切换全选/全不选状态的回调逻辑
@@ -144,16 +140,7 @@
           if (this.seconds <= 0) {
             // 倒计时结束，清除定时器并执行跳转
             clearInterval(this.timer)
-            uni.switchTab({
-              url: '/pages/my/my',
-              success: () => {
-                // 存储来源信息：登录成功后跳转回购物车页面
-                this.updateRedirectInfo({
-                  openType: 'switchTab',
-                  from: '/pages/cart/cart'
-                })
-              }
-            })
+            this.navigateToLogin('/pages/cart/cart')
             return
           }
           // 每秒更新一次提示内容
