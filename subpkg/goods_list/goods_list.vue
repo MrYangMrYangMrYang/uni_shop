@@ -277,7 +277,7 @@
 		onReachBottom() {
 			// 判断是否加载完所有数据
 			if (this.queryObj.pagenum * this.queryObj.pagesize >= this.total)
-				return uni.$showMsg('数据加载完毕！')
+				return uni.$showMsg('已经到底啦~')
 			
 			// 如果正在请求中，则直接返回，避免重复请求
 			if (this.isloading) return

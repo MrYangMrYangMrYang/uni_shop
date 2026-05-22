@@ -4,10 +4,11 @@
  */
 <template>
 	<view class="u-page u-page--page">
-		<!-- 搜索组件容器：吸顶展示 -->
-		<view class="search-wrap u-header-brand u-header-elevated u-sticky-top u-brand-header">
+		<!-- 搜索区域：始终固定在顶部 -->
+		<view class="search-bar">
 			<my-search @click="gotoSearch"></my-search>
 		</view>
+		<view class="search-spacer"></view>
 		
 		<!-- 分类主体滚动区域 -->
 		<view class="scroll-view-container">
@@ -52,16 +53,11 @@
 		
 		data() {
 			return {
-				// 当前窗口可用高度 (px)：用于动态计算 scroll-view 高度
 				wh: 0,
-				// 所有分类的数据列表（完整树结构）
 				cateList: [],
-				// 当前激活的一级分类索引，默认为 0
 				active: 0,
-				// 当前展示的二级分类数据列表（基于 active 动态计算）
 				cateLevel2: [],
-				// 滚动条距离顶部的距离 (用于切换分类后重置右侧滚动位置)
-				scrollTop: 0
+				scrollTop: 0,
 			};
 		},
 
@@ -144,6 +140,21 @@
 </script>
 
 <style lang="scss">
+	/* 搜索栏：始终固定在页面顶部 */
+	.search-bar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: $z-sticky;
+		background: $color-primary-600;
+		padding: 8rpx 16rpx;
+	}
+
+	.search-spacer {
+		height: 52rpx;
+	}
+
 	/* 页面分类主布局容器 */
 	 .scroll-view-container {
 	    display: flex;

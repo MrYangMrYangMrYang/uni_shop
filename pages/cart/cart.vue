@@ -287,7 +287,8 @@
 	    display: flex;
 	    flex-direction: column;
 	    align-items: center;
-	    padding-top: 200rpx;
+	    justify-content: center;
+	    min-height: calc(100vh - 44px);
 		
 		.empty-img {
 			width: 240rpx;
@@ -323,7 +324,8 @@
 	    display: flex;
 	    flex-direction: column;
 	    align-items: center;
-	    padding-top: 200rpx;
+	    justify-content: center;
+	    min-height: calc(100vh - 44px);
 		
 		.empty-img {
 			width: 240rpx;

@@ -110,13 +110,12 @@ page {
 .u-header-brand {
 	background: $color-primary-600;
 	position: relative;
-	overflow: hidden;
 }
 
 .u-header-brand::before {
 	content: ' ';
 	position: absolute;
-	inset: -120rpx;
+	inset: 0;
 	background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%);
 	pointer-events: none;
 }
@@ -127,7 +126,7 @@ page {
 }
 
 .u-brand-header {
-	padding: $space-2;
+	padding: 8rpx 16rpx;
 }
 
 .u-brand-header .uni-searchbar,

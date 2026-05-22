@@ -1,10 +1,11 @@
 <template>
 	<view class="u-page u-page--page">
-		<!-- 搜索框 -->
-		<view class="search-box u-sticky-top u-header-brand u-header-elevated u-brand-header">
-			<!-- 使用 uni-ui 提供的搜索组件 -->
-			<uni-search-bar @input="input" :radius="100" cancelButton="none"></uni-search-bar>
+		<!-- 搜索区域：始终固定在顶部 -->
+		<view class="search-bar">
+			<uni-search-bar @input="input" :radius="100" cancelButton="none" class="search-input"></uni-search-bar>
+			<text class="search-btn" @click="doSearch">搜索</text>
 		</view>
+		<view class="search-spacer"></view>
 		
 		<!-- 搜索建议列表 -->
 		<view class="sugg-list" v-if="searchResults.length !== 0">
@@ -18,12 +19,17 @@
 		<view class="history-box" v-else>
 			<!-- 标题区域 -->
 			<view class="history-title">
-				<text>搜索历史</text>
-				<uni-icons type="trash" size="18" @click="cleanHistory"></uni-icons>
+				<text class="history-title__text">搜索历史</text>
+				<view class="history-clear" @click="cleanHistory">
+					<uni-icons type="trash" size="14" color="#999"></uni-icons>
+					<text class="history-clear__text">清空</text>
+				</view>
 			</view>
 			<!-- 列表区域 -->
 			<view class="history-list">
-				<uni-tag :text="item" v-for="(item, i) in historys" :key="i" @click="gotoGoodsList(item)"></uni-tag>
+				<view class="history-tag" v-for="(item, i) in historys" :key="i" @click="gotoGoodsList(item)">
+					<text class="history-tag__text">{{item}}</text>
+				</view>
 			</view>
 		</view>
 	</view>
@@ -37,14 +43,10 @@
 	export default {
 		data() {
 			return {
-				// 延时器的 timerId，用于防抖处理
 				timer: null,
-				// 搜索关键词
 				kw: '',
-				// 搜索结果列表（搜索建议）
 				searchResults: [],
-				// 搜索关键词的历史记录（原始数组）
-				historyList: []
+				historyList: [],
 			};
 		},
 		/**
@@ -67,6 +69,24 @@
 			}
 		},
 		methods: {
+			/**
+			 * 点击搜索按钮执行搜索
+			 */
+			doSearch() {
+				if (this.kw.trim() === '') {
+					uni.showToast({
+						title: '请输入搜索内容',
+						icon: 'none',
+						duration: 1500
+					})
+					return
+				}
+				this.saveSearchHistory()
+				uni.navigateTo({
+					url: '/subpkg/goods_list/goods_list?query=' + this.kw
+				})
+			},
+
 			/**
 			 * 搜索框输入事件处理（防抖）
 			 * @param {Object} e 输入事件对象
@@ -98,9 +118,6 @@
 				if (res.meta.status !== 200) return uni.$showMsg()
 				// 更新搜索结果
 				this.searchResults = res.message
-				
-				// 查询到搜索建议之后，保存搜索关键词到历史记录
-				this.saveSearchHistory()
 			},
 			
 			/**
@@ -155,15 +172,42 @@
 </script>
 
 <style lang="scss">
-	/* 搜索栏样式定制 */
-	.uni-searchbar {
-		/* #ifndef APP-NVUE */
+	/* 搜索栏：始终固定在页面顶部 */
+	.search-bar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: $z-sticky;
+		background: $color-primary-600;
+		padding: 8rpx 16rpx;
 		display: flex;
-		/* #endif */
-		flex-direction: row;
-		position: relative;
-		padding: 16rpx;
-		background-color: transparent;
+		align-items: center;
+
+		.search-input {
+			flex: 1;
+			display: block !important;
+			width: 100% !important;
+			max-width: none !important;
+			min-width: 0;
+		}
+
+		.search-btn {
+			flex-shrink: 0;
+			margin-left: auto;
+			padding: 12rpx 20rpx;
+			font-size: $font-md;
+			font-weight: 600;
+			color: #ffffff;
+
+			&:active {
+				opacity: 0.7;
+			}
+		}
+	}
+
+	.search-spacer {
+		height: 120rpx;
 	}
 	
 	/* 搜索建议列表样式 */
@@ -191,24 +235,59 @@
 	
 	/* 搜索历史区域样式 */
 	.history-box {
-	    padding: 0 $space-2;
+	    padding: $space-3 $space-2 0;
 	
 	    .history-title {
 	      display: flex;
 	      justify-content: space-between;
-	      height: 80rpx;
 	      align-items: center;
-	      font-size: $font-md;
-	      border-bottom: 1px solid $color-border-1;
+	      margin-bottom: $space-3;
+
+	      &__text {
+	        font-size: $font-md;
+	        font-weight: 600;
+	        color: $color-text-900;
+	      }
+
+	      .history-clear {
+	        display: flex;
+	        align-items: center;
+	        gap: 4rpx;
+	        padding: 8rpx 16rpx;
+	        border-radius: $radius-pill;
+	        background: $color-bg-soft;
+
+	        &__text {
+	          font-size: $font-xs;
+	          color: $color-text-300;
+	        }
+
+	        &:active {
+	          opacity: 0.7;
+	        }
+	      }
 	    }
 	
 	    .history-list {
 	      display: flex;
 	      flex-wrap: wrap;
+	      gap: $space-2;
 	
-	      .uni-tag {
-	        margin-top: $space-2;
-	        margin-right: $space-2;
+	      .history-tag {
+	        padding: 10rpx 24rpx;
+	        background: $color-bg-soft;
+	        border-radius: $radius-pill;
+	        border: 1px solid $color-border-1;
+
+	        &__text {
+	          font-size: $font-sm;
+	          color: $color-text-700;
+	        }
+
+	        &:active {
+	          background: $color-primary-light;
+	          border-color: rgba(192, 0, 0, 0.15);
+	        }
 	      }
 	    }
 	  }

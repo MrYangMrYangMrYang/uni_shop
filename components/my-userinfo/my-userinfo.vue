@@ -70,14 +70,17 @@
             </view>
             <text class="txt">待收货</text>
           </view>
-          <!-- 已完成：使用字体图标 -->
-          <view class="panel-item u-pressable" @click="gotoOrderList(4)">
+          <!-- 已完成 -->
+          <view class="panel-item u-pressable panel-item--completed" @click="gotoOrderList(4)">
             <view class="icon-wrap">
-              <uni-icons type="checkbox" size="22" :color="completedIconColor" class="icon-uni"></uni-icons>
+              <view class="icon icon--completed">
+                <uni-icons type="checkmarkempty" size="30" color="#e07070"></uni-icons>
+              </view>
               <text class="badge" v-if="orderCounts.completed > 0">{{orderCounts.completed}}</text>
             </view>
             <text class="txt">已完成</text>
           </view>
+
           <!-- 售后 -->
           <view class="panel-item u-pressable" @click="gotoOrderList(5)">
             <view class="icon-wrap">
@@ -133,8 +136,7 @@
       return {
         // 统一颜色常量，与 uni.scss 保持一致
         primaryColor: '#C00000',
-        mutedColor: '#909399',
-        completedIconColor: '#f5b6b6'
+        mutedColor: '#909399'
       };
     },
     computed: {
@@ -358,6 +360,10 @@
             margin-top: $space-1;
           }
 
+          &--completed .txt {
+            margin-top: 15rpx;
+          }
+
           /* 图标包装容器（含徽标定位） */
           .icon-wrap {
             position: relative;
@@ -365,6 +371,12 @@
             .icon {
               width: 56rpx;
               height: 56rpx;
+            }
+
+            .icon--completed {
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
 
             .icon-uni {

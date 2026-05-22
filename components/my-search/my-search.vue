@@ -7,7 +7,7 @@
 	<view class="my-search-container" @click="searchBoxHandler" :style="{'background-color': bgcolor}">
 		<!-- 模拟搜索框主体 -->
 		<view class="my-search-box" :style="{'border-radius': radius + 'px'}">
-			<uni-icons type="search" size="18"></uni-icons>
+			<uni-icons type="search" size="18" color="#999999"></uni-icons>
 			<text class="placeholder">搜索</text>
 		</view>
 	</view>
@@ -52,24 +52,23 @@
 <style lang="scss">
 	 /* 搜索组件外层容器 */
 	 .my-search-container {
-	    height: 50px;
+	    height: 36px;
 	    display: flex;
 	    align-items: center;
-	    padding: 0 10px;
 	
 	    /* 内部白色搜索框区域 */
 	    .my-search-box {
-	      height: 36px;
-	      background-color: #FFFFFF;
+	      height: 28px;
+	      background-color: #ffffff;
 	      width: 100%;
 	      display: flex;
 	      justify-content: center;
-	      align-items: center;
-	
-	      /* 占位文本样式 */
+		  align-items: center;
+
 	      .placeholder {
-	        font-size: 15px;
-	        margin-left: 5px;
+	        font-size: 13px;
+	        margin-left: 4rpx;
+			color: #999999;
 	      }
 	    }
 	  }

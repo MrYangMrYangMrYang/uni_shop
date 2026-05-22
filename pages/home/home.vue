@@ -4,10 +4,12 @@
  */
 <template>
 	<view class="u-page u-page--page">
-		<!-- 搜索区域：置顶吸顶 -->
-		<view class="search-box u-sticky-top u-header-brand u-header-elevated u-brand-header">
+		<!-- 搜索区域：始终固定在顶部 -->
+		<view class="search-bar">
 			<my-search @click="gotoSearch"></my-search>
 		</view>
+		<!-- 永久占位，防止内容上移 -->
+		<view class="search-spacer"></view>
 		
 		<!-- 轮播图区域 -->
 		<swiper :indicator-dots="true" :autoplay="true" :interval="3000" :duration="1000" :circular="true" indicator-active-color="#C00000">
@@ -77,11 +79,8 @@
 		
 		data() {
 			return {
-				// 轮播图列表
 				swiperList: [],
-				// 分类导航列表
 				navList: [],
-				// 楼层展示列表
 				floorList: [],
 			}
 		},
@@ -170,6 +169,21 @@
 	/* 页面整体背景 */
 	.u-page {
 		background-color: $color-bg-base;
+	}
+
+	/* 搜索栏：始终固定在页面顶部 */
+	.search-bar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: $z-sticky;
+		background: $color-primary-600;
+		padding: 8rpx 16rpx;
+	}
+
+	.search-spacer {
+		height: 52rpx;
 	}
 
 	/* 轮播图样式控制 */
