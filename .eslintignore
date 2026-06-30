@@ -1,0 +1,14 @@
+# 依赖
+node_modules/
+unpackage/
+dist/
+
+# 第三方 uni-ui 组件（不参与 lint）
+components/uni-*/
+
+# 构建产物
+*.min.js
+
+# 配置文件本身
+.eslintrc.js
+.prettierrc.js

@@ -1,30 +1,41 @@
 <script>
-	/**
-	 * App 根组件
-	 * 负责应用级别的生命周期监控和全局样式导入
-	 */
-	export default {
-		/**
-		 * 当整个应用初始化完成时触发（全局只触发一次）
-		 */
-		onLaunch: function() {
-			// console.log('App Launch')
-		},
-		/**
-		 * 当应用启动，或从后台进入前台显示时触发
-		 */
-		onShow: function() {
-			// console.log('App Show')
-		},
-		/**
-		 * 当应用从前台进入后台隐藏时触发
-		 */
-		onHide: function() {
-			// console.log('App Hide')
+/* global Vue */
+/**
+ * App 根组件
+ * 负责应用级别的生命周期监控、全局错误捕获和全局样式导入
+ */
+export default {
+	onLaunch: function () {
+		// 全局 Vue 渲染错误捕获（仅日志，不弹 toast 打断用户）
+		if (typeof Vue !== 'undefined') {
+			Vue.config.errorHandler = (err, _vm, info) => {
+				console.error('[Vue error]', info, err);
+			};
 		}
+	},
+
+	onShow: function () {},
+
+	onHide: function () {},
+
+	// 小程序脚本错误（仅日志记录，避免每个小错误都弹窗）
+	onError(err) {
+		console.error('[App onError]', err);
+	},
+
+	// Promise 未捕获异常（仅日志记录）
+	onUnhandledRejection({ promise: _promise, reason }) {
+		console.error('[App onUnhandledRejection]', reason);
+	},
+
+	// 页面不存在
+	onPageNotFound(res) {
+		console.warn('[App onPageNotFound]', res);
+		uni.switchTab({ url: '/pages/home/home' });
 	}
+};
 </script>
 
 <style lang="scss">
-	@import '@/uni.scss';
+@import '@/uni.scss';
 </style>

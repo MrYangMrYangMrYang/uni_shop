@@ -10,197 +10,197 @@
 	</view>
 </template>
 <script>
-	/**
-	 * NumberBox 数字输入框
-	 * @description 带加减按钮的数字输入框
-	 * @tutorial https://ext.dcloud.net.cn/plugin?id=31
-	 * @property {Number} value 输入框当前值
-	 * @property {Number} min 最小值
-	 * @property {Number} max 最大值
-	 * @property {Number} step 每次点击改变的间隔大小
-	 * @property {Boolean} disabled = [true|false] 是否为禁用状态
-	 * @event {Function} change 输入框值改变时触发的事件，参数为输入框当前的 value
-	 */
+/**
+ * NumberBox 数字输入框
+ * @description 带加减按钮的数字输入框
+ * @tutorial https://ext.dcloud.net.cn/plugin?id=31
+ * @property {Number} value 输入框当前值
+ * @property {Number} min 最小值
+ * @property {Number} max 最大值
+ * @property {Number} step 每次点击改变的间隔大小
+ * @property {Boolean} disabled = [true|false] 是否为禁用状态
+ * @event {Function} change 输入框值改变时触发的事件，参数为输入框当前的 value
+ */
 
-	export default {
-		name: "UniNumberBox",
-		props: {
-			value: {
-				type: [Number, String],
-				default: 1
-			},
-			min: {
-				type: Number,
-				default: 0
-			},
-			max: {
-				type: Number,
-				default: 100
-			},
-			step: {
-				type: Number,
-				default: 1
-			},
-			disabled: {
-				type: Boolean,
-				default: false
-			}
+export default {
+	name: 'UniNumberBox',
+	props: {
+		value: {
+			type: [Number, String],
+			default: 1
 		},
-		data() {
-			return {
-				inputValue: 0
-			};
+		min: {
+			type: Number,
+			default: 0
 		},
-		watch: {
-			value(val) {
-				this.inputValue = +val;
-			},
-			inputValue(newVal, oldVal) {
-				// 官方提供的 if 判断条件，在用户每次输入内容时，都会调用 this.$emit("change",newVal)
-				// if (+newVal !== +oldVal)
-				
-				// 新旧内容不同 && 新值内容合法 && 新值中不包含小数点
-				if (+newVal !== +oldVal && Number(newVal) && String(newVal).indexOf('.') === -1) {
-					this.$emit("change", newVal);
-				}
-			}
+		max: {
+			type: Number,
+			default: 100
 		},
-		created() {
-			this.inputValue = +this.value;
+		step: {
+			type: Number,
+			default: 1
 		},
-		methods: {
-			_calcValue(type) {
-				if (this.disabled) {
-					return;
-				}
-				const scale = this._getDecimalScale();
-				let value = this.inputValue * scale;
-				let step = this.step * scale;
-				if (type === "minus") {
-					value -= step;
-					if (value < (this.min * scale)) {
-						return;
-					}
-					if (value > (this.max * scale)) {
-						value = this.max * scale
-					}
-				} else if (type === "plus") {
-					value += step;
-					if (value > (this.max * scale)) {
-						return;
-					}
-					if (value < (this.min * scale)) {
-						value = this.min * scale
-					}
-				}
+		disabled: {
+			type: Boolean,
+			default: false
+		}
+	},
+	data() {
+		return {
+			inputValue: 0
+		};
+	},
+	watch: {
+		value(val) {
+			this.inputValue = +val;
+		},
+		inputValue(newVal, oldVal) {
+			// 官方提供的 if 判断条件，在用户每次输入内容时，都会调用 this.$emit("change",newVal)
+			// if (+newVal !== +oldVal)
 
-				this.inputValue = String(value / scale);
-			},
-			_getDecimalScale() {
-				let scale = 1;
-				// 浮点型
-				if (~~this.step !== this.step) {
-					scale = Math.pow(10, (this.step + "").split(".")[1].length);
-				}
-				return scale;
-			},
-			_onBlur(event) {
-				// 官方的代码没有进行数值转换，用户输入的 value 值可能是非法字符：
-				// let value = event.detail.value;
-				
-				// 将用户输入的内容转化为整数
-				let value = parseInt(event.detail.value);
-				// 如果转化之后的结果为 NaN，则给定默认值为 1
-				if (!value) {
-					this.inputValue = 1;
-					return;
-				}
-				value = +value;
-				if (value > this.max) {
-					value = this.max;
-				} else if (value < this.min) {
-					value = this.min;
-				}
-				this.inputValue = value;
+			// 新旧内容不同 && 新值内容合法 && 新值中不包含小数点
+			if (+newVal !== +oldVal && Number(newVal) && String(newVal).indexOf('.') === -1) {
+				this.$emit('change', newVal);
 			}
 		}
-	};
+	},
+	created() {
+		this.inputValue = +this.value;
+	},
+	methods: {
+		_calcValue(type) {
+			if (this.disabled) {
+				return;
+			}
+			const scale = this._getDecimalScale();
+			let value = this.inputValue * scale;
+			let step = this.step * scale;
+			if (type === 'minus') {
+				value -= step;
+				if (value < this.min * scale) {
+					return;
+				}
+				if (value > this.max * scale) {
+					value = this.max * scale;
+				}
+			} else if (type === 'plus') {
+				value += step;
+				if (value > this.max * scale) {
+					return;
+				}
+				if (value < this.min * scale) {
+					value = this.min * scale;
+				}
+			}
+
+			this.inputValue = String(value / scale);
+		},
+		_getDecimalScale() {
+			let scale = 1;
+			// 浮点型
+			if (~~this.step !== this.step) {
+				scale = Math.pow(10, (this.step + '').split('.')[1].length);
+			}
+			return scale;
+		},
+		_onBlur(event) {
+			// 官方的代码没有进行数值转换，用户输入的 value 值可能是非法字符：
+			// let value = event.detail.value;
+
+			// 将用户输入的内容转化为整数
+			let value = parseInt(event.detail.value);
+			// 如果转化之后的结果为 NaN，则给定默认值为 1
+			if (!value) {
+				this.inputValue = 1;
+				return;
+			}
+			value = +value;
+			if (value > this.max) {
+				value = this.max;
+			} else if (value < this.min) {
+				value = this.min;
+			}
+			this.inputValue = value;
+		}
+	}
+};
 </script>
 <style scoped>
-	/* #ifdef APP-NVUE */
+/* #ifdef APP-NVUE */
+/* #endif */
+
+.uni-numbox {
+	/* #ifndef APP-NVUE */
+	display: flex;
 	/* #endif */
+	flex-direction: row;
+	height: 35px;
+	line-height: 35px;
+	width: 120px;
+}
 
-	.uni-numbox {
-		/* #ifndef APP-NVUE */
-		display: flex;
-		/* #endif */
-		flex-direction: row;
-		height: 35px;
-		line-height: 35px;
-		width: 120px;
-	}
+.uni-numbox__value {
+	background-color: #ffffff;
+	width: 40px;
+	height: 35px;
+	text-align: center;
+	font-size: 32rpx;
+	border-width: 1rpx;
+	border-style: solid;
+	border-color: #e5e5e5;
+	border-left-width: 0;
+	border-right-width: 0;
+}
 
-	.uni-numbox__value {
-		background-color: #ffffff;
-		width: 40px;
-		height: 35px;
-		text-align: center;
-		font-size: 32rpx;
-		border-width: 1rpx;
-		border-style: solid;
-		border-color: #e5e5e5;
-		border-left-width: 0;
-		border-right-width: 0;
-	}
-
-	.uni-numbox__minus {
-		/* #ifndef APP-NVUE */
-		display: flex;
-		/* #endif */
-		flex-direction: row;
-		align-items: center;
-		justify-content: center;
-		width: 35px;
-		height: 35px;
-		/* line-height: $box-line-height;
+.uni-numbox__minus {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	/* #endif */
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 35px;
+	height: 35px;
+	/* line-height: $box-line-height;
  */
-		/* text-align: center;
+	/* text-align: center;
  */
-		font-size: 20px;
-		color: #333;
-		background-color: #f8f8f8;
-		border-width: 1rpx;
-		border-style: solid;
-		border-color: #e5e5e5;
-		border-top-left-radius: 6rpx;
-		border-bottom-left-radius: 6rpx;
-		border-right-width: 0;
-	}
+	font-size: 20px;
+	color: #333;
+	background-color: #f8f8f8;
+	border-width: 1rpx;
+	border-style: solid;
+	border-color: #e5e5e5;
+	border-top-left-radius: 6rpx;
+	border-bottom-left-radius: 6rpx;
+	border-right-width: 0;
+}
 
-	.uni-numbox__plus {
-		/* #ifndef APP-NVUE */
-		display: flex;
-		/* #endif */
-		flex-direction: row;
-		align-items: center;
-		justify-content: center;
-		width: 35px;
-		height: 35px;
-		border-width: 1rpx;
-		border-style: solid;
-		border-color: #e5e5e5;
-		border-top-right-radius: 6rpx;
-		border-bottom-right-radius: 6rpx;
-		background-color: #f8f8f8;
-		border-left-width: 0;
-	}
+.uni-numbox__plus {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	/* #endif */
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 35px;
+	height: 35px;
+	border-width: 1rpx;
+	border-style: solid;
+	border-color: #e5e5e5;
+	border-top-right-radius: 6rpx;
+	border-bottom-right-radius: 6rpx;
+	background-color: #f8f8f8;
+	border-left-width: 0;
+}
 
-	.uni-numbox--text {
-		font-size: 40rpx;
-		color: #333;
-	}
+.uni-numbox--text {
+	font-size: 40rpx;
+	color: #333;
+}
 
-	.uni-numbox--disabled {
-		color: #c0c0c0;
-	}
+.uni-numbox--disabled {
+	color: #c0c0c0;
+}
 </style>

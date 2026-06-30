@@ -2,9 +2,6 @@
 # Dependencies (依赖)
 # ============================================
 node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 # ============================================
 # Editor/IDE Configuration (编辑器配置)
@@ -18,6 +15,7 @@ pnpm-lock.yaml
 *.sw?
 .hbuilderx/
 /.hbuilderx
+.husky/_/
 
 # ============================================
 # OS Generated Files (操作系统生成文件)
@@ -61,6 +59,11 @@ yarn-error.log*
 !README.md
 !CHANGELOG.md
 !LICENSE*
+
+# ============================================
+# Project-Specific (项目特定配置)
+# ============================================
+project.private.config.json
 
 # ============================================
 # Temporary Files (临时文件)

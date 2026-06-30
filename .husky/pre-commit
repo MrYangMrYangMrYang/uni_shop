@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# 提交前对暂存区文件跑 lint
+npx lint-staged

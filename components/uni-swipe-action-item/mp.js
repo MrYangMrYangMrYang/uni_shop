@@ -3,93 +3,91 @@ export default {
 		return {
 			position: [],
 			button: []
-		}
+		};
 	},
 	computed: {
 		pos() {
-			return JSON.stringify(this.position)
+			return JSON.stringify(this.position);
 		},
 		btn() {
-			return JSON.stringify(this.button)
+			return JSON.stringify(this.button);
 		}
 	},
 	watch: {
 		show(newVal) {
-			if (this.autoClose) return
-			let valueObj = this.position[0]
+			if (this.autoClose) return;
+			let valueObj = this.position[0];
 			if (!valueObj) {
-				this.init()
-				return
+				this.init();
+				return;
 			}
-			valueObj.show = newVal
-			this.$set(this.position, 0, valueObj)
+			valueObj.show = newVal;
+			this.$set(this.position, 0, valueObj);
 		}
 	},
 	created() {
 		if (this.swipeaction.children !== undefined) {
-			this.swipeaction.children.push(this)
+			this.swipeaction.children.push(this);
 		}
 	},
 	mounted() {
-		this.init()
-
+		this.init();
 	},
 	beforeDestroy() {
 		this.swipeaction.children.forEach((item, index) => {
 			if (item === this) {
-				this.swipeaction.children.splice(index, 1)
+				this.swipeaction.children.splice(index, 1);
 			}
-		})
+		});
 	},
 	methods: {
 		init() {
-			
 			setTimeout(() => {
-				this.getSize()
-				this.getButtonSize()
-			}, 50)
+				this.getSize();
+				this.getButtonSize();
+			}, 50);
 		},
 		closeSwipe(e) {
-			if (!this.autoClose) return
-			this.swipeaction.closeOther(this)
+			if (!this.autoClose) return;
+			this.swipeaction.closeOther(this);
 		},
-		
+
 		change(e) {
-			this.$emit('change', e.open)
-			let valueObj = this.position[0]
+			this.$emit('change', e.open);
+			let valueObj = this.position[0];
 			if (valueObj.show !== e.open) {
-				valueObj.show = e.open
-				this.$set(this.position, 0, valueObj)
+				valueObj.show = e.open;
+				this.$set(this.position, 0, valueObj);
 			}
 		},
 		onClick(index, item) {
 			this.$emit('click', {
 				content: item,
 				index
-			})
+			});
 		},
 		getSize() {
-			const views = uni.createSelectorQuery().in(this)
+			const views = uni.createSelectorQuery().in(this);
 			views
 				.selectAll('.selector-query-hock')
 				.boundingClientRect(data => {
 					if (this.autoClose) {
-						data[0].show = false
+						data[0].show = false;
 					} else {
-						data[0].show = this.show
+						data[0].show = this.show;
 					}
-					this.position = data
+					this.position = data;
 				})
-				.exec()
+				.exec();
 		},
 		getButtonSize() {
-			const views = uni.createSelectorQuery().in(this)
+			const views = uni.createSelectorQuery().in(this);
 			views
 				.selectAll('.button-hock')
 				.boundingClientRect(data => {
-					this.button = data
+					this.button = data;
 				})
-				.exec()
+				.exec();
 		}
 	}
-}
+};

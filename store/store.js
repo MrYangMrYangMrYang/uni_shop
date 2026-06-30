@@ -2,25 +2,33 @@
  * Vuex 状态管理中心
  * 整合所有业务模块，统一管理全局数据状态
  */
-import Vue from 'vue'
-import Vuex from 'vuex'
-// 导入购物车模块
-import moduleCart from '@/store/cart.js'
-// 导入用户模块
-import moduleUser from '@/store/user.js'
+import Vue from 'vue';
+import Vuex from 'vuex';
+import moduleCart from '@/store/cart.js';
+import moduleUser from '@/store/user.js';
+import { createPersistedState } from '@/utils/persist.js';
 
-// 安装 Vuex 插件
-Vue.use(Vuex)
+Vue.use(Vuex);
 
-// 创建 Store 实例
 const store = new Vuex.Store({
-  // 挂载模块
-  modules: {
-    // 购物车模块：命名空间为 m_cart
-    'm_cart': moduleCart,
-    // 用户模块：命名空间为 m_user
-    'm_user': moduleUser
-  }
-})
+	modules: {
+		m_cart: moduleCart,
+		m_user: moduleUser
+	},
+	plugins: [
+		// 持久化配置：state 路径 → 本地存储 key
+		// 命中以下字段的 mutation 会自动同步到 storage，无需在每个模块写 saveXxxToStorage
+		createPersistedState({
+			paths: {
+				'm_cart.cart': 'cart',
+				'm_user.address': 'address',
+				'm_user.addressList': 'addressList',
+				'm_user.token': 'token',
+				'm_user.userinfo': 'userinfo',
+				'm_user.orderList': 'orderList'
+			}
+		})
+	]
+});
 
-export default store
+export default store;

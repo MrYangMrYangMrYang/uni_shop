@@ -1,4 +1,4 @@
-$color-primary: #C00000; // 统一的主题红
+$color-primary: #c00000; // 统一的主题红
 $color-primary-light: rgba(192, 0, 0, 0.1);
 $color-primary-dark: #a80000;
 
@@ -136,7 +136,9 @@ page {
 }
 
 .u-pressable {
-	transition: transform 120ms ease, opacity 120ms ease;
+	transition:
+		transform 120ms ease,
+		opacity 120ms ease;
 }
 
 .u-pressable:active {
