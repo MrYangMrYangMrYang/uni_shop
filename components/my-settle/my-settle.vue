@@ -55,6 +55,8 @@ export default {
 			if (!this.checkedCount) return uni.$showMsg('请选择要结算的商品！');
 			if (!this.token) return this.delayNavigate();
 			this._settleLock = true;
+			// 清除"立即购买"标记，否则 order 页会优先展示上一次立即购买的商品
+			this.$store.commit('m_cart/clearBuyNowGoods');
 			uni.navigateTo({
 				url: '/subpkg/order/order',
 				complete: () => {
