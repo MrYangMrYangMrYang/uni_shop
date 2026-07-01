@@ -48,7 +48,7 @@
 						<view class="goods-info">
 							<view class="goods-name">{{ goods.goods_name }}</view>
 							<view class="goods-price-num">
-								<text class="price">￥{{ goods.goods_price }}</text>
+								<text class="price">{{ goods.goods_price | formatPrice }}</text>
 								<text class="num">x{{ goods.goods_count }}</text>
 							</view>
 						</view>
@@ -58,7 +58,8 @@
 				<view class="order-footer">
 					<text class="order-time">{{ formatTime(order.add_time) }}</text>
 					<view class="total-info">
-						共 {{ totalCount(order.goods) }} 件商品，合计: <text class="total-price">￥{{ order.total_price }}</text>
+						共 {{ totalCount(order.goods) }} 件商品，合计:
+						<text class="total-price">{{ order.total_price | formatPrice }}</text>
 					</view>
 				</view>
 
@@ -127,6 +128,7 @@
 import { mapState, mapMutations } from 'vuex';
 import UEmpty from '@/components/u-empty/u-empty.vue';
 import UImage from '@/components/u-image/u-image.vue';
+import { fenToYuan } from '@/utils/price.js';
 
 export default {
 	components: {
@@ -310,9 +312,10 @@ export default {
 			});
 		},
 		async handlePay(order) {
+			const displayAmount = fenToYuan(order.total_price).toFixed(2);
 			uni.showModal({
 				title: '支付确认',
-				content: `是否支付 ￥${order.total_price}？`,
+				content: `是否支付 ￥${displayAmount}？`,
 				confirmColor: this.primaryColor,
 				success: res => {
 					if (res.confirm) {

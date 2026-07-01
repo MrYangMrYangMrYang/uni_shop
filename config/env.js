@@ -13,12 +13,16 @@ const configs = {
 	development: {
 		apiBaseUrl: 'https://api-hmugo-web.itheima.net',
 		requestTimeout: 60000,
-		enableLog: true
+		enableLog: true,
+		enablePerfLog: true
 	},
 	production: {
 		apiBaseUrl: 'https://api-hmugo-web.itheima.net',
 		requestTimeout: 60000,
-		enableLog: false
+		enableLog: false,
+		enablePerfLog: false,
+		// 生产环境性能采样率（0-1），仅对采样比例的会话收集指标
+		perfSampleRate: 0.1
 	}
 };
 

@@ -74,10 +74,11 @@ export default {
 		},
 
 		checkedGoodsAmount(state) {
+			// 所有内部价格均为整数分，纯整数运算消除浮点精度问题
+			// 显示时通过 | formatPrice filter 转为 ￥XX.XX
 			return state.cart
 				.filter(x => x.goods_state)
-				.reduce((total, item) => (total += item.goods_count * item.goods_price), 0)
-				.toFixed(2);
+				.reduce((total, item) => total + item.goods_count * item.goods_price, 0);
 		}
 	}
 };

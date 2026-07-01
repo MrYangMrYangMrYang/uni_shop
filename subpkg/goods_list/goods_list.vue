@@ -1,8 +1,15 @@
 /** * 商品列表页面 * 展示分类下的商品列表，支持搜索、排序、瀑布流展示、分页加载和下拉刷新 */
 <template>
-	<view class="u-page u-page--page goods-list-page">
+	<!-- 网络异常兜底 -->
+	<u-network-error
+		v-if="pageError"
+		:text="errorMessage"
+		:sub-text="isPageNetworkError ? '请检查网络后重试' : '请下拉刷新或点击重试'"
+		@retry="retry"
+	/>
+	<view v-else class="u-page u-page--page goods-list-page">
 		<!-- 筛选功能区域 -->
-		<view class="list-header u-card--shadow">
+		<view v-if="!pageError" class="list-header u-card--shadow">
 			<view class="filter-box">
 				<view
 					:class="['filter-item', i === activeFilter ? 'active' : '']"
@@ -120,12 +127,16 @@
 
 <script>
 import USkeleton from '@/components/u-skeleton/u-skeleton.vue';
+import UNetworkError from '@/components/u-network-error/u-network-error.vue';
+import errorBoundary from '@/mixins/error-boundary.js';
 import { searchGoods } from '@/api/goods.js';
 
 export default {
 	components: {
-		'u-skeleton': USkeleton
+		'u-skeleton': USkeleton,
+		'u-network-error': UNetworkError
 	},
+	mixins: [errorBoundary],
 	data() {
 		return {
 			queryObj: {
@@ -161,19 +172,25 @@ export default {
 	},
 	methods: {
 		// cb 为请求完成回调（如下拉刷新停止）
+		// 使用错误边界包装：网络异常时自动展示 fallback UI 而非静默失败
 		async getGoodsList(cb) {
 			this.isloading = true;
-			const { data: res } = await searchGoods(this.queryObj);
+
+			await this.withErrorBoundary(
+				async () => {
+					const { data: res } = await searchGoods(this.queryObj);
+					if (res.meta.status !== 200) return uni.$showMsg();
+
+					this.goodsList = [...this.goodsList, ...res.message.goods];
+					this.total = res.message.total;
+
+					this.distributeGoods(res.message.goods);
+				},
+				{ errorMessage: '商品列表加载失败' }
+			);
+
 			this.isloading = false;
-
 			cb && cb();
-
-			if (res.meta.status !== 200) return uni.$showMsg();
-
-			this.goodsList = [...this.goodsList, ...res.message.goods];
-			this.total = res.message.total;
-
-			this.distributeGoods(res.message.goods);
 		},
 		// 瀑布流分配：总是把下一条商品放入当前较短的一列，维持视觉平衡
 		distributeGoods(newList) {

@@ -18,9 +18,11 @@
 ### ✨ 核心亮点
 
 - 🚀 **跨平台兼容**：基于 Uni-app 开发，可编译至微信小程序、H5、App 等多个平台
-- ⚡ **性能优化**：分包加载策略 + 瀑布流布局 + 吸顶效果，显著提升用户体验
-- 🔐 **安全可靠**：Token 机制登录 + 微信原生接口集成
-- 🎨 **交互丰富**：二级联动导航、滑动删除、实时搜索建议等
+- ⚡ **性能优化**：分包加载策略 + 瀑布流布局 + 骨架屏体系 + 首页三接口并发
+- 🔐 **安全可靠**：Token 机制登录 + 微信原生接口集成 + 登录守卫
+- 🎨 **交互丰富**：二级联动导航、滑动删除、实时搜索建议、瀑布流布局
+- 🛡️ **防御性设计**：全局错误边界 + 网络异常兜底 + 重试恢复机制
+- 💰 **价格精度**：内部整数分存储，消除浮点精度问题（前端经典考点）
 
 ---
 
@@ -30,17 +32,33 @@
 
 - **跨平台兼容**：基于 Uni-app 开发，可编译至微信小程序、H5、App 等多个平台
 - **分包加载优化**：核心 TabBar 页面位于主包，搜索、详情、订单等功能模块位于 `subpkg` 分包，显著提升首屏加载速度
+- **性能监控体系**：请求计时、页面加载追踪、包体积分析脚本
 
 ### 高性能交互体验
 
 - **瀑布流布局**：商品列表采用左右双列瀑布流展示，视觉体验更佳
 - **二级联动**：分类页面实现左侧导航与右侧内容的流畅联动
-- **吸顶效果**：搜索框在首页及搜索页支持粘性定位
+- **骨架屏体系**：3 种模式（list/card/detail）× 4 个核心页面，shimmer 动画
 
 ### 状态管理与数据持久化
 
-- 通过 **Vuex** 实现购物车状态、用户信息、收货地址的全局共享与持久化存储
-- 模块化状态管理：`m_cart`（购物车）、`m_user`（用户信息）
+- 通过 **Vuex** 实现购物车状态、用户信息、收货地址、错误状态的全局共享与持久化存储
+- 模块化状态管理：`m_cart`（购物车）、`m_user`（用户信息）、`m_error`（全局错误）
+- **自研持久化插件**：声明式配置替代手写 `saveXxxToStorage`
+
+### 错误处理体系
+
+- **全局错误边界**：页面级 `error-boundary` mixin，API 失败自动展示 fallback UI + 重试
+- **网络异常兜底**：首页/分类/详情/列表/搜索 5 个核心页面接入 `u-network-error` 组件
+- **双重 toast 修复**：统一 `handleRequestError` 为唯一 toast 出口
+- **定时器清理**：`my-settle` 倒计时组件 `beforeDestroy` 防泄漏
+
+### 价格精度方案
+
+- **内部整数分存储**：所有 `goods_price` 为整数分，`goods_count × goods_price` 纯整数运算
+- **API 边界自动转换**：响应拦截器元→分，请求拦截器分→元，递归处理嵌套对象
+- **全局 `formatPrice` filter**：`{{ price | formatPrice }}` → `￥XX.XX`
+- **启动数据迁移**：自动检测并转换本地存储中的旧 float-元数据
 
 ### 微信深度集成
 
@@ -108,11 +126,13 @@
 - **轮播图展示**：动态运营位，支持自动轮播
 - **分类导航**：快捷入口直达商品分类
 - **楼层推荐**：精选商品分模块展示
+- **网络兜底**：API 失败时展示错误页 + 重试按钮
 
 ### 2️⃣ 商品分类 (Category)
 
 - **左右联动导航**：左侧分类列表 + 右侧商品内容
 - **点击定位**：支持快速定位到指定分类
+- **网络兜底**：API 失败时展示错误页 + 重试按钮
 
 ### 3️⃣ 搜索系统 (Search)
 
@@ -127,13 +147,15 @@
 - 富文本渲染商品详情
 - 图片大图预览功能
 - 多规格选择下单
+- 骨架屏加载态 + 网络错误兜底
 
 #### 购物车
 
 - 左滑删除商品（uni-swipe-action）
 - 商品数量调整（uni-number-box）
-- 全选/反选计算总价
+- 全选/反选计算总价（纯整数分运算）
 - TabBar 实时徽标同步
+- 结算按钮防抖 + 登录守卫 + 未登录 3 秒倒计时跳转
 
 #### 地址管理系统
 
@@ -143,8 +165,10 @@
 #### 订单系统
 
 - 订单确认与下单
-- 订单列表分页加载
+- 订单列表按状态分类展示
 - 订单状态流转（待付款/待发货/待收货/已完成）
+- 待付款订单支付倒计时 + 自动过期清理
+- 金额以整数分存储，显示时通过 `formatPrice` filter 转换
 
 ### 5️⃣ 在线客服 (Contact)
 
@@ -223,11 +247,11 @@ stateDiagram-v2
 
 ## 🔦 技术亮点
 
-> 面试官最关心的 5 个技术决策，逐一说明
+> 面试官最关心的技术决策，逐一说明
 
 ### 1. 网络层架构
 
-基于 `@escook/request-miniprogram` 二次封装，补齐了 6 项企业级能力：
+基于 `@escook/request-miniprogram` 二次封装，补齐了以下企业级能力：
 
 | 能力             | 实现                                                        |
 | ---------------- | ----------------------------------------------------------- |
@@ -235,7 +259,9 @@ stateDiagram-v2
 | 401 自动跳登录   | `afterRequest` 拦截器 + 防抖（5s 超时自动复位）             |
 | Loading 引用计数 | 并发请求共享一个 loading，最后完成才关闭                    |
 | 错误码映射       | 400/401/403/404/500/502/503/504 → 用户友好文案              |
-| 超时提示         | 网络超时/断网分别给出针对性提示                             |
+| 超时提示         | 网络超时/断网分别给出针对性提示 + 提交 error state          |
+| 价格边界转换     | 响应拦截器 元→分，请求拦截器 分→元，递归处理嵌套对象        |
+| 请求性能计时     | `beforeRequest` / `afterRequest` 自动记录接口耗时           |
 | API 分层         | `api/home.js` / `api/goods.js` / `api/user.js` 按业务域组织 |
 
 ### 2. 自研持久化插件
@@ -253,23 +279,63 @@ createPersistedState({
 });
 ```
 
-初始化时自动从 Storage 恢复到 state，mutation 命中时自动写入 Storage。
+初始化时自动从 Storage 恢复到 state，mutation 命中时自动写入 Storage。支持嵌套路径、损坏数据降级。
 
-### 3. 骨架屏体系
+### 3. 价格精度方案（前端经典面试考点）
 
-3 种模式（list/card/detail）× 4 个核心页面（home/cate/goods_list/goods_detail），shimmer 动画 + SCSS 变量统一管理。
+**问题**：`0.1 + 0.2 !== 0.3`，电商金额用浮点数直接运算会产生精度误差。
 
-### 4. 购物车双页一致性
+**方案**：全部金额以**整数分**存储，通过 API 边界拦截器完成自动转换：
 
-`pages/cart`（TabBar）和 `subpkg/cart`（内部跳转）共享同一 Vuex store，删除确认、Toast 反馈、商品交互逻辑完全一致。
+```
+后端 API (元) ──响应拦截器: yuanToFen()──→ Store (整数分) ──formatPrice filter──→ 模板显示 ￥XX.XX
+模板操作 ──不变──→ Store (整数分) ──请求拦截器: fenToYuan()──→ 后端 API (元)
+```
 
-### 5. 性能优化 TODO → DONE
+`3 × 333分 = 999分` 永远精确，不依赖于 `Number.toFixed()`。
+
+### 4. 全局错误边界
+
+从 API 层到页面的完整错误处理链路：
+
+```
+request.js 拦截器 → m_error/setError → error-boundary mixin → u-network-error 组件
+```
+
+- **5 个核心页面**接入 `<u-network-error>` fallback UI + 重试按钮
+- `withErrorBoundary()` 包装异步请求，失败自动 commit error state
+- 下拉刷新自动触发重试
+- 修复了双重 toast 问题（`afterRequest` 不再弹 toast，统一由 `handleRequestError` 处理）
+- 修复了 `my-settle` 倒计时定时器泄漏（新增 `beforeDestroy` 清理）
+
+### 5. 骨架屏体系
+
+自研 `u-skeleton` 组件，3 种模式（list/card/detail）× 4 个核心页面（home/cate/goods_list/goods_detail），shimmer 动画 + SCSS 变量统一管理。
+
+### 6. 性能优化
 
 | 优化项             | 实施                                           |
 | ------------------ | ---------------------------------------------- |
 | 首页三接口并发     | `await Promise.all([...])` 替换 3 个串行 await |
 | 订单定时器按需启停 | 仅 `status===0` 订单存在时运行 `setInterval`   |
 | 图片懒加载         | `u-image` 组件默认 `lazy-load="true"`          |
+| 请求性能计时       | request.js 拦截器自动记录接口耗时              |
+| 页面加载追踪       | `perf-tracker` mixin 自动记录 onLoad→onReady   |
+| 包体积分析         | `npm run analyze:size` → 目录占比 + 超限检查   |
+
+### 7. 测试体系
+
+| 维度           | 覆盖                                                          |
+| -------------- | ------------------------------------------------------------- |
+| **utils**      | price(25) + persist(7) + request(9)                           |
+| **store**      | cart(14) + user(14)                                           |
+| **mixins**     | auth-guard(5)                                                 |
+| **components** | my-settle(12) + my-goods(9) + u-empty(9) + u-network-error(5) |
+| **总计**       | **10 测试文件，109 条用例**                                   |
+
+### 8. 购物车双页一致性
+
+`pages/cart`（TabBar）和 `subpkg/cart`（内部跳转）共享同一 Vuex store，删除确认、Toast 反馈、商品交互逻辑完全一致。
 
 ---
 
@@ -278,9 +344,7 @@ createPersistedState({
 <details>
 <summary><b>为什么用 Vue 2 而不是 Vue 3？</b></summary>
 
-本项目基于 **Uni-app** 框架开发。在项目启动时（2024 年初），Uni-app 的 Vue3 支持尚在完善中，Vue2 生态更稳定、插件兼容性更好。同时，掌握 Options API → Composition API 的迁移也是面试中的加分表达。
-
-✅ 已在计划中：Vue3 + `<script setup>` + composables 迁移。
+本项目基于 **Uni-app** 框架开发，受限于 uni-app 生态和微信小程序运行时。另有独立的 Vue 3 + TypeScript 项目覆盖现代技术栈。
 
 </details>
 
@@ -289,58 +353,34 @@ createPersistedState({
 
 Vuex 3.x 是 Vue 2 生态的标准状态管理方案。自研的持久化插件正是基于 Vuex plugin 机制实现的——这恰好展示了"理解原理"而非"只会用工具"的深度。
 
-✅ Pinia 迁移已列入计划。
-
 </details>
 
 <details>
 <summary><b>网络层解决了什么问题？</b></summary>
 
-在 `@escook/request-miniprogram` 基础上补齐了 **Token 自动注入**、**401 拦截跳登录**、**全局 loading 引用计数**、**错误码 → 用户文案映射** 四项能力。详见上方"技术亮点"第 1 点。
+在 `@escook/request-miniprogram` 基础上补齐了 **Token 自动注入**、**401 拦截跳登录**、**全局 loading 引用计数**、**错误码→用户文案映射**、**价格 元↔分 自动转换**、**请求性能计时** 6 项能力。详见上方"技术亮点"第 1 点。
 
 </details>
 
 <details>
-<summary><b>这个项目最大的技术难点是什么？</b></summary>
+<summary><b>项目中有哪些技术难点值得一说？</b></summary>
 
-**自研持久化插件**：需要在 Vuex plugin 中处理嵌套 state 路径的读写，同时保证初始化恢复 → mutation 触发 → Storage 写入的链路正确。难点在于：
-
-1. 嵌套路径的 get/set（`m_cart.cart` → `state.m_cart.cart`）
-2. 初始化时 Storage 数据合并到现有 state 的时机
-3. mutation 命中后只写变更字段而非全量写入
+1. **自研持久化插件**：Vuex plugin 中处理嵌套 state 路径的 get/set、初始化恢复、mutation 触发精确写入
+2. **价格精度方案**：API 边界递归转换 + Store 纯整数运算 + 全局 filter，覆盖 14+ 处模板显示
+3. **全局错误边界**：mixin + Vuex store + fallback 组件的三层架构，兼顾可复用性和简洁性
 
 </details>
 
 <details>
 <summary><b>如何保证代码质量？</b></summary>
 
-- **ESLint + Prettier**：0 errors, 0 warnings
-- **husky + commitlint**：commit 自动校验格式 + 规范提交信息
+- **ESLint + Prettier**：0 errors
+- **husky + commitlint**：commit 自动校验格式 + Conventional Commits
 - **GitHub Actions**：Push → 自动 lint:check + format:check + vitest run
-- **Vitest**：4 spec / 33 用例，mock uni/wx 全局 API
+- **Vitest**：10 测试文件 / 109 用例，覆盖 utils、store、mixins、components
 - **条件编译 ESLint 插件** `eslint-plugin-uni-conditional`：自研，处理 uni-app 的 `#ifdef VUE3` / `#endif` 编译指令
 
 </details>
-
----
-
-## 📸 项目截图
-
-> 微信开发者工具中预览效果最佳。截图存放于 `docs/screenshots/`。
-
-| 首页           | 分类           | 商品详情       |
-| -------------- | -------------- | -------------- |
-| _(截图待补充)_ | _(截图待补充)_ | _(截图待补充)_ |
-
-| 购物车         | 订单列表       | 个人中心       |
-| -------------- | -------------- | -------------- |
-| _(截图待补充)_ | _(截图待补充)_ | _(截图待补充)_ |
-
-### 体验方式
-
-1. **微信开发者工具**：导入项目 → 编译运行
-2. **HBuilderX**：打开项目 → 运行 → 微信小程序模拟器
-3. **H5 在线预览**：(部署后补充链接)
 
 ---
 
@@ -348,49 +388,76 @@ Vuex 3.x 是 Vue 2 生态的标准状态管理方案。自研的持久化插件�
 
 ```text
 uni_shop/
-├── components/              # 业务自定义组件
-│   ├── my-address/         # 收货地址组件
-│   ├── my-goods/           # 商品组件
-│   ├── my-login/           # 登录组件
-│   ├── my-search/          # 搜索组件
-│   ├── my-settle/          # 结算组件
-│   ├── my-userinfo/        # 用户信息组件
-│   ├── uni-goods-nav/      # 商品导航组件
-│   ├── uni-icons/          # 图标组件
-│   ├── uni-number-box/     # 数字输入框组件
-│   ├── uni-search-bar/     # 搜索栏组件
-│   ├── uni-swipe-action/   # 滑动操作组件
-│   └── uni-tag/            # 标签组件
-├── mixins/                  # 逻辑混入
-│   └── tabbar-badge.js     # TabBar 购物车角标混入
-├── pages/                   # 主包页面（TabBar 页面）
-│   ├── home/               # 首页
-│   ├── cate/               # 分类页
-│   ├── cart/               # 购物车页
-│   └── my/                 # 个人中心页
-├── subpkg/                  # 分包页面
-│   ├── address-edit/       # 编辑地址
-│   ├── address-list/       # 地址列表
-│   ├── cart/               # 购物车详情
-│   ├── contact/            # 在线客服
-│   ├── goods_detail/       # 商品详情
-│   ├── goods_list/         # 商品列表
-│   ├── order/              # 订单确认
-│   ├── order_list/         # 订单列表
-│   └── search/             # 搜索页
-├── store/                   # Vuex 状态管理
-│   ├── cart.js             # 购物车状态模块
-│   ├── store.js            # Store 入口
-│   └── user.js             # 用户状态模块
-├── static/                  # 静态资源
-│   ├── my-icons/           # 自定义图标
-│   └── tab_icons/          # TabBar 图标
-├── App.vue                  # 应用入口（全局生命周期 & 样式）
-├── main.js                  # 主入口文件（全局配置）
-├── pages.json               # 页面路由配置
-├── manifest.json            # 应用配置（AppID、权限等）
-├── package.json             # 项目依赖配置
-└── uni.scss                 # 全局 SCSS 变量
+├── __tests__/                # 测试文件
+│   ├── components/           # 组件测试
+│   ├── mixins/               # mixin 测试
+│   ├── store/                # store 测试
+│   └── setup.js              # 全局 mock（uni/wx/Storage）
+├── api/                      # API 接口层（按业务域组织）
+│   ├── goods.js
+│   ├── home.js
+│   └── user.js
+├── components/               # 业务自定义组件
+│   ├── my-address/           # 收货地址组件
+│   ├── my-goods/             # 商品组件（formatPrice filter）
+│   ├── my-login/             # 登录组件
+│   ├── my-search/            # 搜索组件
+│   ├── my-settle/            # 结算组件（防抖 + 定时器清理）
+│   ├── my-userinfo/          # 用户信息组件
+│   ├── u-empty/              # 空状态组件（5 种 mode）
+│   ├── u-image/              # 增强图片组件（懒加载 + 错误兜底）
+│   ├── u-network-error/      # 网络异常兜底组件（5 个页面接入）
+│   ├── u-skeleton/           # 骨架屏组件（3 种模式）
+│   ├── uni-goods-nav/        # 商品导航组件
+│   ├── uni-icons/            # 图标组件
+│   ├── uni-number-box/       # 数字输入框组件
+│   ├── uni-search-bar/       # 搜索栏组件
+│   ├── uni-swipe-action/     # 滑动操作组件
+│   └── uni-tag/              # 标签组件
+├── config/
+│   └── env.js                # 环境配置（含 perfLog 和采样率）
+├── mixins/                   # 逻辑混入
+│   ├── auth-guard.js         # 登录守卫 mixin
+│   ├── custom-navbar.js      # 自定义导航栏 mixin
+│   ├── error-boundary.js     # 错误边界 mixin（withErrorBoundary + retry）
+│   ├── perf-tracker.js       # 页面性能追踪 mixin
+│   └── tabbar-badge.js       # TabBar 购物车角标 mixin
+├── pages/                    # 主包页面（TabBar 页面）
+│   ├── home/                 # 首页（网络兜底 + skeleton）
+│   ├── cate/                 # 分类页（网络兜底）
+│   ├── cart/                 # 购物车页
+│   └── my/                   # 个人中心页
+├── scripts/
+│   └── analyze-bundle.js     # 包体积分析脚本
+├── store/                    # Vuex 状态管理
+│   ├── cart.js               # 购物车模块（整数分运算）
+│   ├── error.js              # 全局错误状态模块
+│   ├── store.js              # Store 入口 + 持久化插件
+│   └── user.js               # 用户 / 订单模块
+├── subpkg/                   # 分包页面
+│   ├── address-edit/         # 编辑地址
+│   ├── address-list/         # 地址列表
+│   ├── cart/                 # 购物车详情
+│   ├── contact/              # 在线客服
+│   ├── goods_detail/         # 商品详情（网络兜底 + skeleton）
+│   ├── goods_list/           # 商品列表（网络兜底 + skeleton）
+│   ├── order/                # 订单确认（整数分存储）
+│   ├── order_list/           # 订单列表（formatPrice filter）
+│   └── search/               # 搜索页（网络兜底）
+├── utils/                    # 工具模块
+│   ├── __tests__/            # utils 单元测试
+│   ├── perf.js               # 性能监控工具
+│   ├── persist.js            # Vuex 持久化插件
+│   ├── price.js              # 价格工具（元↔分 + formatPrice + 迁移）
+│   └── request.js            # HTTP 封装（拦截器 + 价格转换 + 计时）
+├── static/                   # 静态资源
+├── App.vue                   # 应用入口（全局错误捕获 + 性能计时）
+├── main.js                   # 主入口（formatPrice filter + 数据迁移）
+├── pages.json                # 页面路由配置
+├── manifest.json              # 应用配置（AppID、权限等）
+├── package.json              # 项目依赖配置
+├── vitest.config.js          # Vitest 配置
+└── uni.scss                  # 全局 SCSS 变量（70+ 设计 Token）
 ```
 
 ---
@@ -429,21 +496,33 @@ yarn install
 pnpm install
 ```
 
-#### 3. 配置开发环境
+#### 3. 运行测试
+
+```bash
+# 运行全部测试
+npm test
+
+# 测试覆盖率
+npm run test:coverage
+
+# 包体积分析
+npm run analyze:size
+```
+
+#### 4. 配置开发环境
 
 1. 使用 **HBuilderX** 打开项目文件夹
 2. 配置微信开发者工具路径：
    - `工具` -> `设置` -> `运行配置` -> `微信开发者工具路径`
 3. 在 `manifest.json` 中配置微信小程序 AppID（如需真机调试）
 
-#### 4. 运行项目
+#### 5. 运行项目
 
 ```bash
 # 方式一：通过 HBuilderX 运行
 # 点击菜单：运行 -> 运行到小程序模拟器 -> 微信开发者工具
 
 # 方式二：通过 CLI 运行（需安装 cli）
-# 运行到微信开发者工具
 npm run dev:mp-weixin
 ```
 
@@ -475,35 +554,44 @@ npm run dev:mp-weixin
 
 ### 状态管理 (Vuex)
 
-项目使用 Vuex 进行全局状态管理，主要包含两个模块：
+项目使用 Vuex 进行全局状态管理，主要包含三个模块：
 
 #### 购物车模块 ([store/cart.js](store/cart.js))
 
 - 商品列表管理
 - 选中状态控制
-- 总价计算
+- 总价计算（整数分运算，无浮点精度问题）
 - 本地持久化
 
 #### 用户模块 ([store/user.js](store/user.js))
 
-- Token 存储
+- Token 存储与 401 自动清理
 - 用户信息管理
-- 收货地址管理
+- 收货地址管理（新增/编辑/删除/默认排他）
+- 订单管理（状态流转、过期清理、倒计时）
+
+#### 错误模块 ([store/error.js](store/error.js))
+
+- 全局错误状态（hasError / errorMessage / isNetworkError）
+- 页面级 error-boundary mixin 消费
+- 不持久化（每次页面加载重置）
 
 ### 网络请求封装
 
-使用 `@escook/request-miniprogram` 封装网络请求：
+基于 `@escook/request-miniprogram` 深度封装：
 
-- ✅ 请求拦截器：自动添加 Token
-- ✅ 响应拦截器：统一错误处理
-- ✅ 请求超时处理
+- ✅ 请求拦截器：自动注入 Token + 价格 分→元 转换 + 性能计时
+- ✅ 响应拦截器：统一错误处理 + 价格 元→分 转换 + 网络错误状态提交
+- ✅ Loading 引用计数：避免并发请求闪烁
+- ✅ 401 防抖跳转：防止短时间内多次弹窗
 
 ### 自定义组件说明
 
 所有业务组件位于 [components/](components/) 目录，遵循 Uni-app 组件规范：
 
 - **my-***: 业务逻辑组件（登录、地址、结算等）
-- **uni-***: 基础UI组件（图标、标签、数字框等）
+- **u-***: 通用组件（骨架屏、图片、空状态、网络异常）
+- **uni-***: 基础 UI 组件（图标、标签、数字框等）
 
 ---
 

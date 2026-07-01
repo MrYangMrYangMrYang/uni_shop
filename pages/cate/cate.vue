@@ -7,8 +7,16 @@
 		</view>
 		<view class="search-spacer"></view>
 
+		<!-- 网络异常兜底：接口失败时展示 -->
+		<u-network-error
+			v-if="pageError"
+			:text="errorMessage"
+			:sub-text="isPageNetworkError ? '请检查网络后重试' : '请下拉刷新或点击重试'"
+			@retry="retry"
+		/>
+
 		<!-- 分类骨架屏 -->
-		<view v-if="isLoading" class="skeleton-cate">
+		<view v-else-if="isLoading" class="skeleton-cate">
 			<view class="skeleton-cate-left">
 				<view class="skeleton-cate-item" v-for="i in 8" :key="i"></view>
 			</view>
@@ -48,15 +56,18 @@
 
 <script>
 import badgeMix from '@/mixins/tabbar-badge.js';
+import errorBoundary from '@/mixins/error-boundary.js';
 import USkeleton from '@/components/u-skeleton/u-skeleton.vue';
+import UNetworkError from '@/components/u-network-error/u-network-error.vue';
 import { getCategories } from '@/api/goods.js';
 import env from '@/config/env.js';
 
 export default {
 	components: {
-		'u-skeleton': USkeleton
+		'u-skeleton': USkeleton,
+		'u-network-error': UNetworkError
 	},
-	mixins: [badgeMix],
+	mixins: [badgeMix, errorBoundary],
 
 	data() {
 		return {
@@ -78,33 +89,33 @@ export default {
 
 	methods: {
 		async getCateList() {
-			try {
-				const { data: res } = await getCategories();
-				if (res.meta.status !== 200) return uni.$showMsg();
+			const result = await this.withErrorBoundary(
+				async () => {
+					const { data: res } = await getCategories();
+					if (res.meta.status !== 200) return uni.$showMsg();
 
-				// 过滤掉特定的演示或无效分类
-				this.cateList = res.message.filter(item => !['冲锋衣', '其他'].includes(item.cat_name));
+					// 过滤掉特定的演示或无效分类
+					this.cateList = res.message.filter(item => !['冲锋衣', '其他'].includes(item.cat_name));
 
-				// 业务需求：交换“热门推荐”和“大家电”的显示顺序
-				const index1 = this.cateList.findIndex(item => item.cat_name === '热门推荐');
-				const index2 = this.cateList.findIndex(item => item.cat_name === '大家电');
-				if (index1 !== -1 && index2 !== -1) {
-					const temp = this.cateList[index1];
-					this.cateList[index1] = this.cateList[index2];
-					this.cateList[index2] = temp;
-				}
+					// 业务需求：交换”热门推荐”和”大家电”的显示顺序
+					const index1 = this.cateList.findIndex(item => item.cat_name === '热门推荐');
+					const index2 = this.cateList.findIndex(item => item.cat_name === '大家电');
+					if (index1 !== -1 && index2 !== -1) {
+						const temp = this.cateList[index1];
+						this.cateList[index1] = this.cateList[index2];
+						this.cateList[index2] = temp;
+					}
 
-				// 安全检查：防止 active 索引因数据变化越界
-				if (this.active >= this.cateList.length) this.active = 0;
+					// 安全检查：防止 active 索引因数据变化越界
+					if (this.active >= this.cateList.length) this.active = 0;
 
-				this.cateLevel2 = this.cateList[this.active].children.filter(
-					item => !['冲锋衣', '其他'].includes(item.cat_name)
-				);
-			} catch (e) {
-				if (env.enableLog) console.error('[cate] 分类数据加载失败:', e);
-			} finally {
-				this.isLoading = false;
-			}
+					this.cateLevel2 = this.cateList[this.active].children.filter(
+						item => !['冲锋衣', '其他'].includes(item.cat_name)
+					);
+				},
+				{ errorMessage: '分类数据加载失败' }
+			);
+			this.isLoading = false;
 		},
 
 		activeChanged(i) {

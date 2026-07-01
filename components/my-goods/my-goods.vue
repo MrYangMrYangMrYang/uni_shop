@@ -26,7 +26,7 @@
 		<view class="goods-item-right">
 			<view class="goods-name">{{ goods.goods_name }}</view>
 			<view class="goods-info-box">
-				<view class="goods-price">￥{{ goods.goods_price | tofixed }}</view>
+				<view class="goods-price">{{ goods.goods_price | formatPrice }}</view>
 				<uni-number-box
 					:min="1"
 					:value="goods.goods_count"
@@ -86,11 +86,6 @@ export default {
 		},
 		gotoDetail() {
 			this.$emit('click', this.goods);
-		}
-	},
-	filters: {
-		tofixed(num) {
-			return Number(num).toFixed(2);
 		}
 	}
 };

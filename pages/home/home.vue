@@ -8,98 +8,111 @@
 		<!-- 永久占位，防止内容上移 -->
 		<view class="search-spacer"></view>
 
-		<!-- 轮播图骨架屏 -->
-		<view v-if="isLoading" class="skeleton-banner u-card--shadow">
-			<u-skeleton mode="detail" :rows="1" />
-		</view>
-		<!-- 轮播图区域 -->
-		<swiper
-			v-else
-			:indicator-dots="true"
-			:autoplay="true"
-			:interval="3000"
-			:duration="1000"
-			:circular="true"
-			indicator-active-color="#C00000"
-		>
-			<swiper-item v-for="(item, i) in swiperList" :key="i">
-				<navigator class="swiper-item u-pressable" url="/pages/cate/cate" open-type="switchTab">
-					<image :src="item.image_src"></image>
-				</navigator>
-			</swiper-item>
-		</swiper>
+		<!-- 网络异常兜底：接口全部失败时展示 -->
+		<u-network-error
+			v-if="pageError"
+			:text="errorMessage"
+			:sub-text="isPageNetworkError ? '请检查网络后重试' : '请下拉刷新或点击重试'"
+			@retry="retry"
+		/>
 
-		<!-- 推荐标题区域 -->
-		<view class="section-title">
-			<text class="section-title__main">为你推荐</text>
-			<text class="section-title__sub">精选好物 · 今日上新</text>
-		</view>
-
-		<!-- 分类导航骨架屏 -->
-		<view v-if="isLoading" class="skeleton-nav">
-			<u-skeleton mode="card" :rows="4" />
-		</view>
-		<!-- 分类导航区域 -->
-		<view class="nav-list u-card--shadow" v-else>
-			<view class="nav-item u-pressable" v-for="(item, i) in navList" :key="i" @click="navClickHandler(item)">
-				<view class="nav-icon">
-					<image :src="item.image_src" class="nav-img"></image>
-				</view>
-				<text class="nav-text">{{ item.name }}</text>
+		<template v-else>
+			<!-- 轮播图骨架屏 -->
+			<view v-if="isLoading" class="skeleton-banner u-card--shadow">
+				<u-skeleton mode="detail" :rows="1" />
 			</view>
-		</view>
-
-		<!-- 楼层骨架屏 -->
-		<view v-if="isLoading" class="skeleton-floor">
-			<u-skeleton mode="card" :rows="3" />
-		</view>
-		<!-- 楼层展示区域 -->
-		<view class="floor-list" v-else>
-			<view class="floor-item u-card--shadow" v-for="(item, i) in floorList" :key="i">
-				<view class="floor-header">
-					<image :src="item.floor_title.image_src" class="floor-title-img" mode="widthFix"></image>
-				</view>
-				<!-- 楼层内容：采用左一右四布局 -->
-				<view class="floor-img-box">
-					<!-- 左侧大图 -->
-					<navigator class="left-img-box u-pressable" :url="item.product_list[0].url">
-						<image class="u-img-rounded floor-img" :src="item.product_list[0].image_src" mode="aspectFill"></image>
+			<!-- 轮播图区域 -->
+			<swiper
+				v-else
+				:indicator-dots="true"
+				:autoplay="true"
+				:interval="3000"
+				:duration="1000"
+				:circular="true"
+				indicator-active-color="#C00000"
+			>
+				<swiper-item v-for="(item, i) in swiperList" :key="i">
+					<navigator class="swiper-item u-pressable" url="/pages/cate/cate" open-type="switchTab">
+						<image :src="item.image_src"></image>
 					</navigator>
-					<!-- 右侧四个小图 -->
-					<view class="right-img-box">
-						<navigator
-							class="right-img-item u-pressable"
-							v-for="(item2, i2) in item.product_list.slice(1)"
-							:key="i2"
-							:url="item2.url"
-						>
-							<image class="u-img-rounded floor-img" :src="item2.image_src" mode="aspectFill"></image>
+				</swiper-item>
+			</swiper>
+
+			<!-- 推荐标题区域 -->
+			<view class="section-title">
+				<text class="section-title__main">为你推荐</text>
+				<text class="section-title__sub">精选好物 · 今日上新</text>
+			</view>
+
+			<!-- 分类导航骨架屏 -->
+			<view v-if="isLoading" class="skeleton-nav">
+				<u-skeleton mode="card" :rows="4" />
+			</view>
+			<!-- 分类导航区域 -->
+			<view class="nav-list u-card--shadow" v-else>
+				<view class="nav-item u-pressable" v-for="(item, i) in navList" :key="i" @click="navClickHandler(item)">
+					<view class="nav-icon">
+						<image :src="item.image_src" class="nav-img"></image>
+					</view>
+					<text class="nav-text">{{ item.name }}</text>
+				</view>
+			</view>
+
+			<!-- 楼层骨架屏 -->
+			<view v-if="isLoading" class="skeleton-floor">
+				<u-skeleton mode="card" :rows="3" />
+			</view>
+			<!-- 楼层展示区域 -->
+			<view class="floor-list" v-else>
+				<view class="floor-item u-card--shadow" v-for="(item, i) in floorList" :key="i">
+					<view class="floor-header">
+						<image :src="item.floor_title.image_src" class="floor-title-img" mode="widthFix"></image>
+					</view>
+					<!-- 楼层内容：采用左一右四布局 -->
+					<view class="floor-img-box">
+						<!-- 左侧大图 -->
+						<navigator class="left-img-box u-pressable" :url="item.product_list[0].url">
+							<image class="u-img-rounded floor-img" :src="item.product_list[0].image_src" mode="aspectFill"></image>
 						</navigator>
+						<!-- 右侧四个小图 -->
+						<view class="right-img-box">
+							<navigator
+								class="right-img-item u-pressable"
+								v-for="(item2, i2) in item.product_list.slice(1)"
+								:key="i2"
+								:url="item2.url"
+							>
+								<image class="u-img-rounded floor-img" :src="item2.image_src" mode="aspectFill"></image>
+							</navigator>
+						</view>
 					</view>
 				</view>
 			</view>
-		</view>
 
-		<!-- 底部提示 -->
-		<view class="load-more" v-if="!isLoading">
-			<view class="line"></view>
-			<text class="text">已经到底啦</text>
-			<view class="line"></view>
-		</view>
+			<!-- 底部提示 -->
+			<view class="load-more" v-if="!isLoading && !pageError">
+				<view class="line"></view>
+				<text class="text">已经到底啦</text>
+				<view class="line"></view>
+			</view>
+		</template>
 	</view>
 </template>
 
 <script>
 import badgeMix from '@/mixins/tabbar-badge.js';
+import errorBoundary from '@/mixins/error-boundary.js';
 import USkeleton from '@/components/u-skeleton/u-skeleton.vue';
+import UNetworkError from '@/components/u-network-error/u-network-error.vue';
 import { getSwiperList, getNavList, getFloorList } from '@/api/home.js';
 import env from '@/config/env.js';
 
 export default {
 	components: {
-		'u-skeleton': USkeleton
+		'u-skeleton': USkeleton,
+		'u-network-error': UNetworkError
 	},
-	mixins: [badgeMix],
+	mixins: [badgeMix, errorBoundary],
 
 	data() {
 		return {
@@ -116,14 +129,12 @@ export default {
 
 	methods: {
 		// P2-26: 三个独立接口改为 Promise.all 并发，避免串行放大首屏时间
+		// 使用错误边界包装，网络异常时自动展示 fallback UI
 		async loadHomeData() {
-			try {
-				await Promise.all([this.getSwiperList(), this.getNavList(), this.getFloorList()]);
-			} catch (e) {
-				if (env.enableLog) console.error('[home] 首页数据加载失败:', e);
-			} finally {
-				this.isLoading = false;
-			}
+			await this.withErrorBoundary(() => Promise.all([this.getSwiperList(), this.getNavList(), this.getFloorList()]), {
+				errorMessage: '首页数据加载失败'
+			});
+			this.isLoading = false;
 		},
 
 		async getSwiperList() {

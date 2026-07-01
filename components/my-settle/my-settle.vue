@@ -11,7 +11,7 @@
 
 		<!-- 合计金额展示 -->
 		<view class="amount-box">
-			合计:<text class="amount">￥{{ checkedGoodsAmount }}</text>
+			合计:<text class="amount">{{ checkedGoodsAmount | formatPrice }}</text>
 		</view>
 
 		<!-- 结算按钮：展示已选商品数量 -->
@@ -67,7 +67,7 @@ export default {
 		// 流程：创建订单 -> 获取预支付参数 -> 发起微信支付 -> 验证支付结果
 		async payOrder() {
 			const orderInfo = {
-				order_price: 0.01, // 演示金额，实际应使用 this.checkedGoodsAmount
+				order_price: 1, // 演示金额（1分），实际应使用 this.checkedGoodsAmount
 				consignee_addr: this.addstr,
 				goods: this.cart
 					.filter(x => x.goods_state)
@@ -109,6 +109,7 @@ export default {
 				this.seconds--;
 				if (this.seconds <= 0) {
 					clearInterval(this.timer);
+					this.timer = null;
 					this.navigateToLogin('/pages/cart/cart');
 					return;
 				}
@@ -123,6 +124,14 @@ export default {
 				mask: true, // 防止点击穿透
 				duration: 1500
 			});
+		}
+	},
+
+	// 组件销毁前清理定时器，防止内存泄漏
+	beforeDestroy() {
+		if (this.timer) {
+			clearInterval(this.timer);
+			this.timer = null;
 		}
 	}
 };

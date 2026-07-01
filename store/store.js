@@ -6,6 +6,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import moduleCart from '@/store/cart.js';
 import moduleUser from '@/store/user.js';
+import moduleError from '@/store/error.js';
 import { createPersistedState } from '@/utils/persist.js';
 
 Vue.use(Vuex);
@@ -13,7 +14,8 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
 	modules: {
 		m_cart: moduleCart,
-		m_user: moduleUser
+		m_user: moduleUser,
+		m_error: moduleError
 	},
 	plugins: [
 		// 持久化配置：state 路径 → 本地存储 key

@@ -1,5 +1,12 @@
 <template>
-	<view class="u-page u-page--page">
+	<!-- 网络异常兜底 -->
+	<u-network-error
+		v-if="pageError"
+		:text="errorMessage"
+		:sub-text="isPageNetworkError ? '请检查网络后重试' : '请下拉刷新或点击重试'"
+		@retry="retry"
+	/>
+	<view v-else class="u-page u-page--page">
 		<!-- 搜索区域：始终固定在顶部 -->
 		<view class="search-bar">
 			<uni-search-bar @input="input" :radius="100" cancelButton="none" class="search-input"></uni-search-bar>
@@ -51,6 +58,8 @@
 </template>
 
 <script>
+import UNetworkError from '@/components/u-network-error/u-network-error.vue';
+import errorBoundary from '@/mixins/error-boundary.js';
 import { getSearchSuggest } from '@/api/goods.js';
 
 /**
@@ -62,6 +71,10 @@ import { getSearchSuggest } from '@/api/goods.js';
  * - 联想词：点击跳搜索列表（与历史点击行为一致）
  */
 export default {
+	components: {
+		'u-network-error': UNetworkError
+	},
+	mixins: [errorBoundary],
 	data() {
 		return {
 			timer: null,
@@ -127,9 +140,14 @@ export default {
 				this.searchResults = [];
 				return;
 			}
-			const { data: res } = await getSearchSuggest(this.kw);
-			if (res.meta.status !== 200) return uni.$showMsg();
-			this.searchResults = res.message;
+			await this.withErrorBoundary(
+				async () => {
+					const { data: res } = await getSearchSuggest(this.kw);
+					if (res.meta.status !== 200) return uni.$showMsg();
+					this.searchResults = res.message;
+				},
+				{ errorMessage: '搜索建议加载失败' }
+			);
 		},
 
 		saveSearchHistory() {

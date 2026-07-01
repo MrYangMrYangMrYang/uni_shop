@@ -10,6 +10,7 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
+		"analyze:size": "node scripts/analyze-bundle.js",
 		"prepare": "husky install"
 	},
 	"repository": {

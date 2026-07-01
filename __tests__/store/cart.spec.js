@@ -28,14 +28,14 @@ describe('store/cart.js', () => {
 
 	describe('mutations', () => {
 		it('addToCart 新增商品时推入新对象', () => {
-			const goods = { goods_id: 1, goods_name: '商品A', goods_price: 10, goods_count: 1, goods_state: true };
+			const goods = { goods_id: 1, goods_name: '商品A', goods_price: 1000, goods_count: 1, goods_state: true };
 			store.commit('m_cart/addToCart', goods);
 			expect(store.state.m_cart.cart).toHaveLength(1);
 			expect(store.state.m_cart.cart[0].goods_id).toBe(1);
 		});
 
 		it('addToCart 已存在商品时数量 +1', () => {
-			const goods = { goods_id: 1, goods_name: '商品A', goods_price: 10, goods_count: 1, goods_state: true };
+			const goods = { goods_id: 1, goods_name: '商品A', goods_price: 1000, goods_count: 1, goods_state: true };
 			store.commit('m_cart/addToCart', goods);
 			store.commit('m_cart/addToCart', goods);
 			expect(store.state.m_cart.cart).toHaveLength(1);
@@ -46,14 +46,14 @@ describe('store/cart.js', () => {
 			store.commit('m_cart/addToCart', {
 				goods_id: 1,
 				goods_name: 'A',
-				goods_price: 10,
+				goods_price: 1000,
 				goods_count: 1,
 				goods_state: true
 			});
 			store.commit('m_cart/addToCart', {
 				goods_id: 2,
 				goods_name: 'B',
-				goods_price: 20,
+				goods_price: 2000,
 				goods_count: 1,
 				goods_state: true
 			});
@@ -66,14 +66,14 @@ describe('store/cart.js', () => {
 			store.commit('m_cart/addToCart', {
 				goods_id: 1,
 				goods_name: 'A',
-				goods_price: 10,
+				goods_price: 1000,
 				goods_count: 1,
 				goods_state: true
 			});
 			store.commit('m_cart/addToCart', {
 				goods_id: 2,
 				goods_name: 'B',
-				goods_price: 20,
+				goods_price: 2000,
 				goods_count: 1,
 				goods_state: false
 			});
@@ -85,14 +85,14 @@ describe('store/cart.js', () => {
 			store.commit('m_cart/addToCart', {
 				goods_id: 1,
 				goods_name: 'A',
-				goods_price: 10,
+				goods_price: 1000,
 				goods_count: 1,
 				goods_state: true
 			});
 			store.commit('m_cart/addToCart', {
 				goods_id: 2,
 				goods_name: 'B',
-				goods_price: 20,
+				goods_price: 2000,
 				goods_count: 1,
 				goods_state: false
 			});
@@ -105,7 +105,7 @@ describe('store/cart.js', () => {
 			store.commit('m_cart/addToCart', {
 				goods_id: 1,
 				goods_name: 'A',
-				goods_price: 10,
+				goods_price: 1000,
 				goods_count: 1,
 				goods_state: true
 			});
@@ -116,32 +116,31 @@ describe('store/cart.js', () => {
 
 	describe('getters', () => {
 		beforeEach(() => {
-			// 准备测试数据：3 件商品，2 件勾选
+			// 准备测试数据：3 件商品，2 件勾选（价格单位：分）
 			store.commit('m_cart/addToCart', {
 				goods_id: 1,
 				goods_name: 'A',
-				goods_price: 10,
+				goods_price: 1000, // ¥10.00
 				goods_count: 2,
 				goods_state: true
 			});
 			store.commit('m_cart/addToCart', {
 				goods_id: 2,
 				goods_name: 'B',
-				goods_price: 20,
+				goods_price: 2000, // ¥20.00
 				goods_count: 3,
 				goods_state: false
 			});
 			store.commit('m_cart/addToCart', {
 				goods_id: 3,
 				goods_name: 'C',
-				goods_price: 5,
+				goods_price: 500, // ¥5.00
 				goods_count: 1,
 				goods_state: true
 			});
 		});
 
 		it('total 返回购物车所有商品总数', () => {
-			// 注意：addToCart 第二次推入相同 goods_id 会 +1，所以用新 goods_id 模拟
 			expect(store.getters['m_cart/total']).toBe(6); // 2 + 3 + 1
 		});
 
@@ -149,14 +148,31 @@ describe('store/cart.js', () => {
 			expect(store.getters['m_cart/checkedCount']).toBe(3); // 2 + 1
 		});
 
-		it('checkedGoodsAmount 返回已勾选商品总金额（保留两位小数字符串）', () => {
-			// 商品A: 2 * 10 = 20，商品C: 1 * 5 = 5，合计 25.00
-			expect(store.getters['m_cart/checkedGoodsAmount']).toBe('25.00');
+		it('checkedGoodsAmount 返回已勾选商品总金额（整数分）', () => {
+			// 商品A: 2 * 1000 = 2000分，商品C: 1 * 500 = 500分，合计 2500分 = ¥25.00
+			expect(store.getters['m_cart/checkedGoodsAmount']).toBe(2500);
 		});
 
-		it('无勾选商品时 checkedGoodsAmount 返回 "0.00"', () => {
+		it('checkedGoodsAmount 为整数而非字符串', () => {
+			expect(typeof store.getters['m_cart/checkedGoodsAmount']).toBe('number');
+		});
+
+		it('无勾选商品时 checkedGoodsAmount 返回 0', () => {
 			store.commit('m_cart/updateAllGoodsState', false);
-			expect(store.getters['m_cart/checkedGoodsAmount']).toBe('0.00');
+			expect(store.getters['m_cart/checkedGoodsAmount']).toBe(0);
+		});
+
+		it('精确计算：3 * 333分 = 999分 无误', () => {
+			// 测试浮点精度：若是浮点 3.33 * 3 可能有误差
+			store.commit('m_cart/clearCart');
+			store.commit('m_cart/addToCart', {
+				goods_id: 99,
+				goods_name: 'PrecisionTest',
+				goods_price: 333, // ¥3.33
+				goods_count: 3,
+				goods_state: true
+			});
+			expect(store.getters['m_cart/checkedGoodsAmount']).toBe(999);
 		});
 	});
 
@@ -165,7 +181,7 @@ describe('store/cart.js', () => {
 			store.commit('m_cart/addToCart', {
 				goods_id: 1,
 				goods_name: 'A',
-				goods_price: 10,
+				goods_price: 1000,
 				goods_count: 1,
 				goods_state: true
 			});
@@ -177,7 +193,7 @@ describe('store/cart.js', () => {
 		it('初始化时从本地存储恢复数据', () => {
 			uni.setStorageSync(
 				'cart',
-				JSON.stringify([{ goods_id: 99, goods_name: 'X', goods_price: 1, goods_count: 1, goods_state: true }])
+				JSON.stringify([{ goods_id: 99, goods_name: 'X', goods_price: 100, goods_count: 1, goods_state: true }])
 			);
 			const newStore = createStore();
 			expect(newStore.state.m_cart.cart).toHaveLength(1);

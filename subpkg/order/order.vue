@@ -23,23 +23,23 @@
 		<view class="detail-section u-card--shadow">
 			<view class="detail-item">
 				<text>商品总额</text>
-				<text class="price">￥{{ totalPrice }}</text>
+				<text class="price">{{ totalPrice | formatPrice }}</text>
 			</view>
 			<view class="detail-item">
 				<text>运费</text>
-				<text class="price">￥0.00</text>
+				<text class="price">{{ 0 | formatPrice }}</text>
 			</view>
 			<!-- 实付款（总额 + 运费） -->
 			<view class="detail-item total">
 				<text>实付款</text>
-				<text class="price">￥{{ totalPrice }}</text>
+				<text class="price">{{ totalPrice | formatPrice }}</text>
 			</view>
 		</view>
 
 		<!-- 底部固定定位的支付栏 -->
 		<view class="footer-pay u-fixed-footer">
 			<view class="pay-info">
-				合计：<text class="total-price">￥{{ totalPrice }}</text>
+				合计：<text class="total-price">{{ totalPrice | formatPrice }}</text>
 			</view>
 			<view class="pay-btn u-pressable" @click="onPayment">提交订单</view>
 		</view>
@@ -54,15 +54,16 @@
  *
  * 业务逻辑说明：
  * 1. 支持两种进入路径：
- *    - 路径A：从购物车点击“结算”进入，携带购物车中勾选的商品。
- *    - 路径B：从商品详情点击“立即购买”进入，携带单件商品数据（通过 URL query 传递）。
+ *    - 路径A：从购物车点击"结算"进入，携带购物车中勾选的商品。
+ *    - 路径B：从商品详情点击"立即购买"进入，携带单件商品数据（通过 URL query 传递）。
  * 2. 支付流程模拟：
  *    - 提交订单时校验地址。
- *    - 提供“立即支付”和“稍后支付”两种模拟路径。
+ *    - 提供"立即支付"和"稍后支付"两种模拟路径。
  *    - 支付成功跳转至订单列表-待发货；取消支付跳转至订单列表-待付款。
  * 3. 状态清理：订单生成后，需同步清理购物车中对应的选中项。
  */
 import { mapState, mapMutations } from 'vuex';
+import { fenToYuan } from '@/utils/price.js';
 
 export default {
 	data() {
@@ -80,15 +81,16 @@ export default {
 			if (this.buyNowGoods) return this.buyNowGoods;
 			return this.cart.filter(x => x.goods_state);
 		},
+		// 总价为整数分，模板通过 | formatPrice 显示
 		totalPrice() {
-			return this.orderGoods.reduce((total, item) => total + item.goods_count * item.goods_price, 0).toFixed(2);
+			return this.orderGoods.reduce((total, item) => total + item.goods_count * item.goods_price, 0);
 		}
 	},
 	methods: {
 		...mapMutations('m_cart', ['removeCheckedGoods']),
 		...mapMutations('m_user', ['addOrder']),
 		// 流程：校验 -> 模拟支付弹窗 -> 持久化订单 -> 跳转
-		async onPayment() {
+		onPayment() {
 			// 防抖：避免连续点击触发多次下单
 			if (this._submitLock) return;
 			// 1. 强校验：必须有收货地址才能下单
@@ -96,9 +98,10 @@ export default {
 			this._submitLock = true;
 
 			// 2. 弹出模拟支付选择框
+			const displayAmount = fenToYuan(this.totalPrice).toFixed(2);
 			uni.showModal({
 				title: '确认下单',
-				content: `订单金额 ￥${this.totalPrice}，是否支付？`,
+				content: `订单金额 ￥${displayAmount}，是否支付？`,
 				cancelText: '稍后支付',
 				confirmText: '立即支付',
 				confirmColor: '#C00000',
@@ -134,7 +137,7 @@ export default {
 								duration: 1000
 							});
 
-							// 跳转至订单列表“待发货”页签（tab=2）
+							// 跳转至订单列表"待发货"页签（tab=2）
 							setTimeout(() => {
 								uni.redirectTo({ url: '/subpkg/order_list/order_list?tab=2' });
 							}, 1000);
@@ -155,7 +158,7 @@ export default {
 							duration: 1500
 						});
 
-						// 跳转至订单列表“待付款”页签（tab=1）
+						// 跳转至订单列表"待付款"页签（tab=1）
 						setTimeout(() => {
 							uni.redirectTo({ url: '/subpkg/order_list/order_list?tab=1' });
 						}, 1500);

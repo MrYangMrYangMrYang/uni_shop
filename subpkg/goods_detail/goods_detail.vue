@@ -4,6 +4,13 @@
 	<view v-if="isLoading" class="skeleton-detail">
 		<u-skeleton mode="detail" :rows="6" />
 	</view>
+	<!-- 网络异常兜底 -->
+	<u-network-error
+		v-else-if="pageError"
+		:text="errorMessage"
+		:sub-text="isPageNetworkError ? '请检查网络后重试' : '请下拉刷新或点击重试'"
+		@retry="retry"
+	/>
 	<!-- 商品详情内容 -->
 	<view v-else-if="goods_info.goods_name" class="goods-detail-container u-page u-page--page">
 		<!-- 轮播图区域 -->
@@ -25,7 +32,7 @@
 		<!-- 商品基础信息区域 -->
 		<view class="goods-info-box u-card--shadow">
 			<view class="price-row">
-				<view class="price">￥{{ goods_info.goods_price }}</view>
+				<view class="price">{{ goods_info.goods_price | formatPrice }}</view>
 				<view class="favi u-chip u-chip--outline u-pressable">
 					<uni-icons type="star" size="16" color="#909399"></uni-icons>
 					<text>收藏</text>
@@ -57,15 +64,17 @@
 <script>
 import { mapMutations, mapGetters } from 'vuex';
 import authGuard from '@/mixins/auth-guard.js';
+import errorBoundary from '@/mixins/error-boundary.js';
 import USkeleton from '@/components/u-skeleton/u-skeleton.vue';
+import UNetworkError from '@/components/u-network-error/u-network-error.vue';
 import { getGoodsDetail } from '@/api/goods.js';
-import env from '@/config/env.js';
 
 export default {
 	components: {
-		'u-skeleton': USkeleton
+		'u-skeleton': USkeleton,
+		'u-network-error': UNetworkError
 	},
-	mixins: [authGuard],
+	mixins: [authGuard, errorBoundary],
 	data() {
 		return {
 			isLoading: true,
@@ -107,20 +116,20 @@ export default {
 		...mapMutations('m_cart', ['addToCart']),
 
 		async getGoodsDetailData(goods_id) {
-			try {
-				const { data: res } = await getGoodsDetail(goods_id);
-				if (res.meta.status !== 200) return uni.$showMsg();
+			await this.withErrorBoundary(
+				async () => {
+					const { data: res } = await getGoodsDetail(goods_id);
+					if (res.meta.status !== 200) return uni.$showMsg();
 
-				res.message.goods_introduce = res.message.goods_introduce
-					.replace(/<img /g, '<img style="display:block;" ')
-					.replace(/webp/g, 'jpg');
+					res.message.goods_introduce = res.message.goods_introduce
+						.replace(/<img /g, '<img style="display:block;" ')
+						.replace(/webp/g, 'jpg');
 
-				this.goods_info = res.message;
-			} catch (e) {
-				if (env.enableLog) console.error('[goods_detail] 商品详情加载失败:', e);
-			} finally {
-				this.isLoading = false;
-			}
+					this.goods_info = res.message;
+				},
+				{ errorMessage: '商品详情加载失败' }
+			);
+			this.isLoading = false;
 		},
 
 		preview(i) {
