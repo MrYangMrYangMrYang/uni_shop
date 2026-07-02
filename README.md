@@ -652,7 +652,7 @@ npm run dev:mp-weixin
 
 | 配置项               | 值                 | 说明                     |
 | -------------------- | ------------------ | ------------------------ |
-| appid                | wx59a05d819ac54ff8 | 微信小程序 AppID         |
+| appid                | 请替换为你的 AppID | 微信小程序 AppID         |
 | urlCheck             | false              | 关闭域名校验（开发环境） |
 | lazyCodeLoading      | requiredComponents | 按需注入组件             |
 | requiredPrivateInfos | chooseAddress      | 申请收货地址权限         |
