@@ -30,7 +30,6 @@
 - [🤝 贡献指南](#contributing)
 - [📄 开源协议](#license)
 - [🙏 致谢](#acknowledgements)
-- [📮 联系方式](#contact)
 
 ---
 
@@ -813,14 +812,6 @@ copyright notice and this permission notice appear in all copies.
 - [uni-ui](https://uniapp.dcloud.io/component/uniui/uni-ui.html) - UI 组件库
 
 ---
-
-<a id="contact"></a>
-
-## 📮 联系方式
-
-- 💬 **Issue**: [提交问题](https://github.com/MrYangMrYangMrYang/uni_shop/issues)
-- 📧 **邮箱**: [GitHub Issues](https://github.com/MrYangMrYangMrYang/uni_shop/issues)
-- 🌐 **项目地址**: [GitHub 仓库](https://github.com/MrYangMrYangMrYang/uni_shop)
 
 ---
 
