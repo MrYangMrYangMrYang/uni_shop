@@ -2,11 +2,11 @@
 import Vue from 'vue';
 import App from './App';
 import { $http } from '@escook/request-miniprogram';
-import store from './store/store.js';
-import env from './config/env.js';
-import { setupRequestInterceptors } from './utils/request.js';
-import { formatPrice, migrateStoredPrices } from './utils/price.js';
-import { perfStart } from './utils/perf.js';
+import store from './src/store/store.js';
+import env from './src/config/env.js';
+import { setupRequestInterceptors } from './src/utils/request.js';
+import { formatPrice, migrateStoredPrices } from './src/utils/price.js';
+import { perfStart } from './src/utils/perf.js';
 
 // 应用初始化计时
 perfStart('app_init');
@@ -24,6 +24,7 @@ Vue.filter('formatPrice', formatPrice);
 // 使用哨兵 key 确保只执行一次
 migrateStoredPrices();
 
+// @deprecated 使用 utils/toast.js 的 showToast() 替代。保留以兼容旧代码。
 uni.$showMsg = function (title = '数据加载失败！', duration = 1500) {
 	uni.showToast({
 		title,

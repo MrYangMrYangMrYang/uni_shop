@@ -34,6 +34,14 @@ export default {
 			scrollTop: 0
 		};
 	},
+
+	beforeDestroy() {
+		if (this.__replyTimer) {
+			clearTimeout(this.__replyTimer);
+			this.__replyTimer = null;
+		}
+	},
+
 	computed: {
 		...mapState('m_user', ['userinfo'])
 	},
@@ -50,10 +58,10 @@ export default {
 			this.inputMsg = '';
 
 			// 模拟客服自动回复（1 秒延迟）
-			setTimeout(() => {
+			this.__replyTimer = setTimeout(() => {
 				this.chatList.push({
 					type: 'service',
-					content: `收到您的咨询：“${tempMsg}”。我们的客服人员会尽快给您回复，请稍等。`
+					content: '收到您的咨询："' + tempMsg + '"。我们的客服人员会尽快给您回复，请稍等。'
 				});
 				this.scrollToBottom();
 			}, 1000);
@@ -117,7 +125,7 @@ export default {
 				justify-content: flex-end;
 				.message-box {
 					background-color: $color-primary-600;
-					color: #fff;
+					color: $color-white;
 				}
 			}
 		}
@@ -144,7 +152,7 @@ export default {
 			height: 70rpx;
 			line-height: 70rpx;
 			background-color: $color-primary-600;
-			color: #fff;
+			color: $color-white;
 			font-size: $font-md;
 			margin-left: $space-2;
 			border-radius: 35rpx;

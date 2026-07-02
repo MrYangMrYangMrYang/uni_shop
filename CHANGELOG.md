@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 - 登录系统：微信授权登录、Token 持久化、登录守卫
 - 状态管理：Vuex 模块化 + 自研持久化插件
 - 网络层：@escook/request-miniprogram + 401 拦截 + 错误码映射
-- 骨架屏：home/cate/goods_list/goods_detail 首屏骨架
+- 骨架屏：home/cate/goods-list/goods-detail 首屏骨架
 - 表单校验：地址实时校验 + 必填标记 + 保存防抖
 - 全局错误捕获：App.onError / onUnhandledRejection / onPageNotFound
 - 设计系统：uni.scss 70+ 变量

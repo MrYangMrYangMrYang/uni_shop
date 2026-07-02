@@ -11,18 +11,18 @@ export default defineConfig({
 	},
 	test: {
 		// 测试文件匹配规则
-		include: ['**/__tests__/**/*.spec.js', '**/*.spec.js'],
+		include: ['**/tests/unit/**/*.spec.js', '**/*.spec.js'],
 		// 排除 build 产物和依赖
-		exclude: ['node_modules/**', 'dist/**', 'unpackage/**'],
+		exclude: ['node_modules/**', 'dist/**', 'unpackage/**', 'tests/e2e/**'],
 		// 全局环境：node（uni-app 业务代码引用了 uni 全局，需在 setup 文件中 mock）
 		environment: 'node',
 		// 全局 setup 文件（mock uni / wx 等全局 API）
-		setupFiles: ['./__tests__/setup.js'],
+		setupFiles: ['./tests/unit/setup.js'],
 		// 覆盖率配置
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'html', 'lcov'],
-			include: ['store/**', 'utils/**', 'mixins/**'],
+			include: ['src/store/**', 'src/utils/**', 'src/mixins/**'],
 			exclude: ['**/*.spec.js', 'node_modules/**']
 		}
 	}

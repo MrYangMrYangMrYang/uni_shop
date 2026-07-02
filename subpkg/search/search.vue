@@ -40,7 +40,7 @@
 			<view class="history-title">
 				<text class="history-title__text">搜索历史</text>
 				<view class="history-clear" @click="cleanHistory" v-if="historyList.length > 0">
-					<uni-icons type="trash" size="14" color="#999"></uni-icons>
+					<uni-icons type="trash" size="14" :color="mutedIconColor"></uni-icons>
 					<text class="history-clear__text">清空</text>
 				</view>
 			</view>
@@ -58,9 +58,11 @@
 </template>
 
 <script>
+import { showToast } from '@/src/utils/toast.js';
 import UNetworkError from '@/components/u-network-error/u-network-error.vue';
-import errorBoundary from '@/mixins/error-boundary.js';
-import { getSearchSuggest } from '@/api/goods.js';
+import errorBoundary from '@/src/mixins/error-boundary.js';
+import { DEMO_HOT_SEARCH } from '@/src/config/mock.js';
+import { getSearchSuggest } from '@/src/api/goods.js';
 
 /**
  * 搜索页面
@@ -71,29 +73,25 @@ import { getSearchSuggest } from '@/api/goods.js';
  * - 联想词：点击跳搜索列表（与历史点击行为一致）
  */
 export default {
+	onUnload() {
+		if (this.timer) {
+			clearTimeout(this.timer);
+			this.timer = null;
+		}
+	},
 	components: {
 		'u-network-error': UNetworkError
 	},
 	mixins: [errorBoundary],
 	data() {
 		return {
+			mutedIconColor: '#999', // $color-text-300
 			timer: null,
 			kw: '',
 			searchResults: [],
 			historyList: [],
 			// mock 热搜词
-			hotSearchList: [
-				'iPhone 15',
-				'华为 Mate 60',
-				'小米 14',
-				'AirPods Pro',
-				'机械键盘',
-				'显示器',
-				'运动鞋',
-				'羽绒服',
-				'咖啡机',
-				'面膜'
-			]
+			hotSearchList: DEMO_HOT_SEARCH //
 		};
 	},
 	onLoad() {
@@ -119,7 +117,7 @@ export default {
 			this._searchLock = true;
 			this.saveSearchHistory();
 			uni.navigateTo({
-				url: '/subpkg/goods_list/goods_list?query=' + this.kw,
+				url: '/subpkg/goods-list/goods-list?query=' + this.kw,
 				complete: () => {
 					this._searchLock = false;
 				}
@@ -143,7 +141,7 @@ export default {
 			await this.withErrorBoundary(
 				async () => {
 					const { data: res } = await getSearchSuggest(this.kw);
-					if (res.meta.status !== 200) return uni.$showMsg();
+					if (res.meta.status !== 200) return showToast();
 					this.searchResults = res.message;
 				},
 				{ errorMessage: '搜索建议加载失败' }
@@ -170,7 +168,7 @@ export default {
 			uni.showModal({
 				title: '提示',
 				content: '确认要清空所有搜索历史吗？',
-				confirmColor: '#C00000',
+				confirmColor: '#C00000', // $color-primary
 				success: res => {
 					if (res.confirm) {
 						this.historyList = [];
@@ -193,7 +191,7 @@ export default {
 				this.kw = keyword;
 			}
 			uni.navigateTo({
-				url: '/subpkg/goods_list/goods_list?query=' + keyword
+				url: '/subpkg/goods-list/goods-list?query=' + keyword
 			});
 		}
 	}
@@ -227,7 +225,7 @@ export default {
 		padding: 12rpx 20rpx;
 		font-size: $font-md;
 		font-weight: 600;
-		color: #ffffff;
+		color: $color-white;
 
 		&:active {
 			opacity: 0.7;

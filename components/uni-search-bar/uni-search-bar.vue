@@ -159,15 +159,15 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .uni-searchbar {
 	/* #ifndef APP-NVUE */
 	display: flex;
 	/* #endif */
 	flex-direction: row;
 	position: relative;
-	padding: 16rpx;
-	background-color: #c00000;
+	padding: $space-2;
+	background-color: $color-primary;
 }
 
 .uni-searchbar__box {
@@ -185,7 +185,7 @@ export default {
 	padding: 5px 8px 5px 0px;
 	border-width: 0.5px;
 	border-style: solid;
-	border-color: #e5e5e5;
+	border-color: $color-border-strong;
 }
 
 .uni-searchbar__box-icon-search {
@@ -196,31 +196,31 @@ export default {
 	width: 32px;
 	justify-content: center;
 	align-items: center;
-	color: #808080;
+	color: $color-text-300;
 }
 
 .uni-searchbar__box-search-input {
 	flex: 1;
-	font-size: 28rpx;
-	color: #333;
+	font-size: $font-md;
+	color: $color-text-700;
 }
 
 .uni-searchbar__box-icon-clear {
 	align-items: center;
 	line-height: 24px;
-	padding-left: 5px;
+	padding-left: $space-1;
 }
 
 .uni-searchbar__text-placeholder {
-	font-size: 28rpx;
-	color: #808080;
-	margin-left: 5px;
+	font-size: $font-md;
+	color: $color-text-300;
+	margin-left: $space-1;
 }
 
 .uni-searchbar__cancel {
-	padding-left: 10px;
+	padding-left: $space-2;
 	line-height: 36px;
-	font-size: 14px;
-	color: #333;
+	font-size: $font-sm;
+	color: $color-text-700;
 }
 </style>

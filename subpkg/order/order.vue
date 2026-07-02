@@ -62,15 +62,16 @@
  *    - 支付成功跳转至订单列表-待发货；取消支付跳转至订单列表-待付款。
  * 3. 状态清理：订单生成后，需同步清理购物车中对应的选中项。
  */
+import { showToast } from '@/src/utils/toast.js';
 import { mapState, mapMutations } from 'vuex';
-import { fenToYuan } from '@/utils/price.js';
+import { fenToYuan } from '@/src/utils/price.js';
 
 export default {
 	data() {
 		return {};
 	},
 	onLoad() {
-		// buyNowGoods 由 goods_detail 通过 m_cart/setBuyNowGoods 写入 store
+		// buyNowGoods 由 goods-detail 通过 m_cart/setBuyNowGoods 写入 store
 		// 不再从 URL query 解析 JSON（P2-23）
 	},
 	computed: {
@@ -94,7 +95,8 @@ export default {
 			// 防抖：避免连续点击触发多次下单
 			if (this._submitLock) return;
 			// 1. 强校验：必须有收货地址才能下单
-			if (!this.address.userName) return uni.$showMsg('请选择收货地址！');
+			if (this.orderGoods.length === 0) return showToast('订单商品为空，请重新选择');
+			if (!this.address.userName) return showToast('请选择收货地址！');
 			this._submitLock = true;
 
 			// 2. 弹出模拟支付选择框
@@ -104,7 +106,10 @@ export default {
 				content: `订单金额 ￥${displayAmount}，是否支付？`,
 				cancelText: '稍后支付',
 				confirmText: '立即支付',
-				confirmColor: '#C00000',
+				confirmColor: '#C00000', // $color-primary
+				complete: () => {
+					this._submitLock = false;
+				},
 				success: res => {
 					// 3. 封装统一的订单基础数据结构
 					const orderBase = {
@@ -125,6 +130,8 @@ export default {
 
 							// status: 1 = 待发货
 							this.addOrder({ ...orderBase, status: 1 });
+							// 下单后清理 buyNowGoods，防止数据残留
+							this.$store.commit('m_cart/clearBuyNowGoods');
 
 							// 购物车结算需移除已选商品
 							if (!this.buyNowGoods) {
@@ -139,13 +146,15 @@ export default {
 
 							// 跳转至订单列表"待发货"页签（tab=2）
 							setTimeout(() => {
-								uni.redirectTo({ url: '/subpkg/order_list/order_list?tab=2' });
+								uni.redirectTo({ url: '/subpkg/order-list/order-list?tab=2' });
 							}, 1000);
 						}, 800);
 					} else if (res.cancel) {
 						// --- 路径2：取消支付/稍后支付 ---
 						// status: 0 = 待付款
 						this.addOrder({ ...orderBase, status: 0 });
+						// 下单后清理 buyNowGoods，防止数据残留
+						this.$store.commit('m_cart/clearBuyNowGoods');
 
 						// 订单已生成，即便未支付也需从购物车移除选中项
 						if (!this.buyNowGoods) {
@@ -160,7 +169,7 @@ export default {
 
 						// 跳转至订单列表"待付款"页签（tab=1）
 						setTimeout(() => {
-							uni.redirectTo({ url: '/subpkg/order_list/order_list?tab=1' });
+							uni.redirectTo({ url: '/subpkg/order-list/order-list?tab=1' });
 						}, 1500);
 					}
 				}
@@ -269,7 +278,7 @@ export default {
 			height: 100rpx;
 			line-height: 100rpx;
 			background-color: $color-primary;
-			color: #fff;
+			color: $color-white;
 			text-align: center;
 			font-size: $font-md;
 			font-weight: bold;

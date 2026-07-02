@@ -70,7 +70,7 @@ module.exports = {
 		},
 		// 测试文件
 		{
-			files: ['**/__tests__/**/*.js', '**/*.spec.js', '**/*.test.js'],
+			files: ['**/tests/unit/**/*.js', '**/*.spec.js', '**/*.test.js'],
 			env: { jest: true, node: true }
 		},
 		// 配置文件

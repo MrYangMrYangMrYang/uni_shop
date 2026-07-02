@@ -126,7 +126,7 @@ export default {
 	}
 };
 </script>
-<style scoped>
+<style scoped lang="scss">
 /* #ifdef APP-NVUE */
 /* #endif */
 
@@ -141,14 +141,14 @@ export default {
 }
 
 .uni-numbox__value {
-	background-color: #ffffff;
+	background-color: $color-bg;
 	width: 40px;
 	height: 35px;
 	text-align: center;
-	font-size: 32rpx;
+	font-size: $font-lg;
 	border-width: 1rpx;
 	border-style: solid;
-	border-color: #e5e5e5;
+	border-color: $color-border-strong;
 	border-left-width: 0;
 	border-right-width: 0;
 }
@@ -166,12 +166,12 @@ export default {
  */
 	/* text-align: center;
  */
-	font-size: 20px;
-	color: #333;
-	background-color: #f8f8f8;
+	font-size: $font-xs;
+	color: $color-text-700;
+	background-color: $color-bg-soft;
 	border-width: 1rpx;
 	border-style: solid;
-	border-color: #e5e5e5;
+	border-color: $color-border-strong;
 	border-top-left-radius: 6rpx;
 	border-bottom-left-radius: 6rpx;
 	border-right-width: 0;
@@ -188,19 +188,19 @@ export default {
 	height: 35px;
 	border-width: 1rpx;
 	border-style: solid;
-	border-color: #e5e5e5;
+	border-color: $color-border-strong;
 	border-top-right-radius: 6rpx;
 	border-bottom-right-radius: 6rpx;
-	background-color: #f8f8f8;
+	background-color: $color-bg-soft;
 	border-left-width: 0;
 }
 
 .uni-numbox--text {
-	font-size: 40rpx;
-	color: #333;
+	font-size: $font-xl;
+	color: $color-text-700;
 }
 
 .uni-numbox--disabled {
-	color: #c0c0c0;
+	color: $color-icon-muted;
 }
 </style>

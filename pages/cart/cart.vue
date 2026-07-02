@@ -1,143 +1,67 @@
-/** * 购物车页面（TabBar 页面） * 展示已添加至购物车的商品列表，支持修改数量、勾选状态及删除商品 *
-自定义导航栏，与分包页面风格保持一致 */
+<!--
+  购物车页面（TabBar 页面）
+  职责：登录守卫 + 自定义导航栏 + TabBar 角标同步
+  购物车列表的渲染/交互逻辑由 my-cart-content 共享组件承载
+-->
 <template>
 	<view class="u-page u-page--page">
-		<!-- 自定义导航栏（与分包页面风格一致） -->
+		<!-- 自定义导航栏（margin-right 居中策略） -->
 		<view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
 			<view class="nav-content">
 				<view class="back-box u-pressable" @click="goBack">
-					<uni-icons type="arrowleft" size="18" color="#FFF"></uni-icons>
+					<uni-icons type="arrowleft" size="18" :color="navIconColor"></uni-icons>
 				</view>
 				<text class="nav-title">Sunny优购</text>
 			</view>
 		</view>
 
-		<!-- 导航栏占位高度 -->
+		<!-- 导航栏佔位 -->
 		<view :style="{ height: statusBarHeight + 44 + 'px' }"></view>
 
-		<!-- 未登录状态：提示用户先登录才能查看购物车 -->
+		<!-- 未登录：引导去登录 -->
 		<view class="login-tip" v-if="!token">
 			<image src="/static/cart_empty@2x.png" class="empty-img"></image>
 			<text class="tip-text">您还未登录，登录后可查看购物车</text>
 			<view class="go-login-btn u-pressable" @click="goLogin">去登录</view>
 		</view>
 
-		<!-- 已登录状态：空白购物车缺省页（当 cart 数组为空时显示） -->
-		<view class="empty-cart" v-else-if="cart.length === 0">
-			<image src="/static/cart_empty@2x.png" class="empty-img"></image>
-			<text class="tip-text">空空如也，去选购几件商品吧~</text>
-			<view class="go-shopping-btn u-pressable" @click="goHome">去逛逛</view>
-		</view>
-
-		<!-- 购物车商品列表区域 -->
-		<view class="cart-container" v-else>
-			<!-- 列表头部卡片：显示店铺图标及商品总数统计 -->
-			<view class="cart-header u-card--shadow">
-				<view class="title-left">
-					<uni-icons type="shop" size="20" :color="primaryColor"></uni-icons>
-					<text class="title-text">我的清单</text>
-				</view>
-				<text class="goods-count">共 {{ cart.length }} 件商品</text>
-			</view>
-
-			<!-- 商品列表容器：支持侧滑删除操作 -->
-			<uni-swipe-action class="cart-list">
-				<block v-for="(goods, i) in cart" :key="i">
-					<uni-swipe-action-item :options="options" @click="swipeItemClickHandler(goods)">
-						<view class="cart-list-item u-card--shadow">
-							<!-- 复用 my-goods：show-radio 开启勾选框，show-num 开启数量步进器 -->
-							<my-goods
-								:goods="goods"
-								:show-radio="true"
-								:show-num="true"
-								@radio-change="radioChangeHandler"
-								@num-change="numberChangeHandler"
-								@click="gotoDetail"
-							>
-							</my-goods>
-						</view>
-					</uni-swipe-action-item>
-				</block>
-			</uni-swipe-action>
-
-			<!-- 底部全选与结算工具栏 -->
-			<my-settle></my-settle>
-
-			<!-- 底部占位：防止固定定位的结算栏遮挡列表最后一项内容 -->
-			<view class="u-fixed-footer-spacer"></view>
-		</view>
+		<!-- 已登录：复用共享购物车组件 -->
+		<my-cart-content
+			v-else
+			primary-color="#C00000"
+			swipe-delete-strategy="confirm"
+			@after-delete="onAfterDelete"
+			@navigate-to-login="goLogin"
+		/>
 	</view>
 </template>
 
 <script>
-import badgeMix from '@/mixins/tabbar-badge.js';
-import customNavbar from '@/mixins/custom-navbar.js';
-import { mapState, mapMutations } from 'vuex';
+import badgeMix from '@/src/mixins/tabbar-badge.js';
+import customNavbar from '@/src/mixins/custom-navbar.js';
+import MyCartContent from '@/components/my-cart-content/my-cart-content.vue';
+import { mapState } from 'vuex';
 
 export default {
+	components: { MyCartContent },
 	mixins: [badgeMix, customNavbar],
 
 	data() {
 		return {
-			primaryColor: '#C00000',
-			options: [
-				{
-					text: '删除',
-					style: {
-						backgroundColor: '#C00000'
-					}
-				}
-			]
+			navIconColor: '#FFFFFF' // $color-white
 		};
 	},
 
 	computed: {
-		...mapState('m_cart', ['cart']),
 		...mapState('m_user', ['token'])
 	},
 
 	methods: {
-		...mapMutations('m_cart', ['updateGoodsState', 'updateGoodsCount', 'removeGoodsById']),
-
-		radioChangeHandler(e) {
-			this.updateGoodsState(e);
-		},
-
-		numberChangeHandler(e) {
-			this.updateGoodsCount(e);
-		},
-
-		swipeItemClickHandler(goods) {
-			uni.showModal({
-				title: '操作提示',
-				content: '确认要从购物车中移除该商品吗？',
-				confirmColor: this.primaryColor,
-				success: res => {
-					if (res.confirm) {
-						this.removeGoodsById(goods.goods_id);
-						uni.showToast({
-							title: '已移除',
-							icon: 'none'
-						});
-					}
-				}
-			});
-		},
-
-		gotoDetail(goods) {
-			uni.navigateTo({
-				url: '/subpkg/goods_detail/goods_detail?goods_id=' + goods.goods_id
-			});
-		},
-
-		goHome() {
-			uni.switchTab({
-				url: '/pages/home/home'
-			});
+		onAfterDelete() {
+			// 删除后 TabBar 角标会自动通过 badgeMix 同步，此处预留扩展点
 		},
 
 		goLogin() {
-			// 保存当前页面信息，登录成功后可返回
 			this.$store.commit('m_user/updateRedirectInfo', {
 				openType: 'switchTab',
 				from: '/pages/cart/cart'
@@ -151,14 +75,14 @@ export default {
 </script>
 
 <style lang="scss">
-/* 自定义导航栏（与分包页面风格一致） */
+/* ---- 自定义导航栏 ---- */
 .custom-nav-bar {
 	position: fixed;
 	top: 0;
 	left: 0;
 	width: 100%;
-	background-color: #c00000;
-	z-index: 999;
+	background-color: $color-primary;
+	z-index: $z-sticky;
 
 	.nav-content {
 		height: 44px;
@@ -180,7 +104,7 @@ export default {
 		.nav-title {
 			flex: 1;
 			text-align: center;
-			color: #fff;
+			color: $color-white;
 			font-size: $font-sm;
 			font-weight: 300;
 			margin-right: 50rpx;
@@ -188,102 +112,7 @@ export default {
 	}
 }
 
-/* 购物车列表内容区域容器 */
-.cart-container {
-	padding: $space-2;
-	padding-bottom: $space-1;
-}
-
-/* 购物车头部统计卡片样式 */
-.cart-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: $space-3;
-	background: $color-bg-card;
-	border-radius: $radius-lg;
-	margin-bottom: $space-3;
-
-	.title-left {
-		display: flex;
-		align-items: center;
-		gap: $space-2;
-
-		.title-text {
-			font-size: $font-md;
-			font-weight: 800;
-			color: $color-text-900;
-			letter-spacing: 1rpx;
-		}
-	}
-
-	.goods-count {
-		font-size: $font-xs;
-		color: $color-text-300;
-		background: $color-bg-soft;
-		padding: 4rpx 16rpx;
-		border-radius: $radius-pill;
-	}
-}
-
-/* 商品列表间距控制 */
-.cart-list {
-	display: flex;
-	flex-direction: column;
-	gap: $space-2;
-}
-
-/* 购物车商品卡片项样式 */
-.cart-list-item {
-	overflow: hidden;
-	border-radius: $radius-lg;
-	background: $color-bg;
-	margin-bottom: $space-2;
-
-	/* 深度选择器：移除内部商品项的底边框，交由卡片容器管理 */
-	:deep(.goods-item) {
-		border-bottom: none;
-	}
-}
-
-/* 购物车空状态缺省样式 */
-.empty-cart {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	min-height: calc(100vh - 44px);
-
-	.empty-img {
-		width: 240rpx;
-		height: 240rpx;
-		opacity: 0.8;
-	}
-
-	.tip-text {
-		margin-top: $space-4;
-		font-size: $font-md;
-		color: $color-text-300;
-		font-weight: 500;
-	}
-
-	.go-shopping-btn {
-		margin-top: $space-6;
-		padding: $space-2 $space-6;
-		background-color: $color-primary-600;
-		color: #fff;
-		font-size: $font-sm;
-		border-radius: $radius-pill;
-		box-shadow: 0 8rpx 20rpx rgba(192, 0, 0, 0.2);
-
-		&:active {
-			transform: scale(0.96);
-			opacity: 0.9;
-		}
-	}
-}
-
-/* 未登录提示样式 */
+/* ---- 未登录提示 ---- */
 .login-tip {
 	display: flex;
 	flex-direction: column;
@@ -308,10 +137,10 @@ export default {
 		margin-top: $space-6;
 		padding: $space-2 $space-6;
 		background-color: $color-primary-600;
-		color: #fff;
+		color: $color-white;
 		font-size: $font-sm;
 		border-radius: $radius-pill;
-		box-shadow: 0 8rpx 20rpx rgba(192, 0, 0, 0.2);
+		box-shadow: 0 8rpx 20rpx $color-primary-shadow;
 
 		&:active {
 			transform: scale(0.96);

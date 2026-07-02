@@ -44,7 +44,7 @@
 						{{ regionStr || '请选择所在地区' }}
 					</view>
 				</picker>
-				<uni-icons type="arrowright" size="14" color="#909399"></uni-icons>
+				<uni-icons type="arrowright" size="14" :color="mutedIconColor"></uni-icons>
 			</view>
 			<view class="form-item__error" v-if="errors.region">{{ errors.region }}</view>
 
@@ -65,7 +65,7 @@
 		<view class="form-box u-card--shadow mt-20">
 			<view class="form-item no-border">
 				<text class="label">设为默认地址</text>
-				<switch :checked="form.isDefault" color="#C00000" @change="onDefaultChange" />
+				<switch :checked="form.isDefault" :color="primaryColor" @change="onDefaultChange" />
 			</view>
 		</view>
 
@@ -78,6 +78,7 @@
 </template>
 
 <script>
+import { showToast } from '@/src/utils/toast.js';
 import { mapState, mapMutations } from 'vuex';
 
 export default {
@@ -99,6 +100,9 @@ export default {
 				isDefault: false
 			},
 			// picker 三列数据（省/市/区）
+
+			primaryColor: '#C00000', // $color-primary,
+			mutedIconColor: '#909399', // $color-text-300,
 			// mode="region" 的初始值，编辑时从已有地址回填
 			regionValue: []
 		};
@@ -197,6 +201,26 @@ export default {
 		onSave() {
 			if (this.isSaving) return;
 			if (!this.validateAll()) return;
+
+			// 重复地址校验：相同收货人 + 电话 + 完整地址视为重复
+			// 编辑模式下跳过自身
+			const isDuplicate = this.addressList.some(addr => {
+				if (this.addressId && addr.id === this.addressId) return false;
+				return (
+					addr.userName === this.form.userName.trim() &&
+					addr.telNumber === this.form.telNumber &&
+					addr.provinceName === this.form.provinceName &&
+					addr.cityName === this.form.cityName &&
+					addr.countyName === this.form.countyName &&
+					addr.detailInfo === this.form.detailInfo.trim()
+				);
+			});
+
+			if (isDuplicate) {
+				showToast('该地址已存在，请勿重复添加');
+				return;
+			}
+
 			this.isSaving = true;
 
 			if (this.form.isDefault) {
@@ -207,10 +231,10 @@ export default {
 
 			if (this.addressId) {
 				this.editAddress(this.form);
-				uni.$showMsg('修改成功');
+				showToast('修改成功');
 			} else {
 				this.addAddress(this.form);
-				uni.$showMsg('添加成功');
+				showToast('添加成功');
 			}
 
 			setTimeout(() => {
@@ -222,11 +246,11 @@ export default {
 			uni.showModal({
 				title: '提示',
 				content: '确定要删除该地址吗？',
-				confirmColor: '#C00000',
+				confirmColor: this.primaryColor,
 				success: res => {
 					if (res.confirm) {
 						this.removeAddress(this.addressId);
-						uni.$showMsg('删除成功');
+						showToast('删除成功');
 						setTimeout(() => {
 							uni.navigateBack();
 						}, 1000);
@@ -241,34 +265,34 @@ export default {
 <style lang="scss">
 .address-edit-container {
 	padding: 20rpx;
-	background-color: #f4f4f4;
+	background-color: $color-bg-page;
 	min-height: 100vh;
 
 	.form-box {
-		background-color: #fff;
-		border-radius: 16rpx;
+		background-color: $color-bg;
+		border-radius: $radius-lg;
 		padding: 0 30rpx;
 
 		.form-item {
 			display: flex;
 			align-items: center;
 			padding: 30rpx 0;
-			border-bottom: 1px solid #eee;
+			border-bottom: 1px solid $color-border-light;
 
 			.label {
 				width: 160rpx;
-				font-size: 28rpx;
-				color: #333;
+				font-size: $font-md;
+				color: $color-text-700;
 
 				.required {
-					color: #c00000;
+					color: $color-primary;
 					margin-right: 4rpx;
 				}
 			}
 
 			.input {
 				flex: 1;
-				font-size: 28rpx;
+				font-size: $font-md;
 			}
 
 			.region-picker {
@@ -276,17 +300,17 @@ export default {
 			}
 
 			.region-value {
-				font-size: 28rpx;
-				color: #333;
+				font-size: $font-md;
+				color: $color-text-700;
 				&.placeholder {
-					color: #999;
+					color: $color-text-300;
 				}
 			}
 
 			.textarea {
 				flex: 1;
 				height: 120rpx;
-				font-size: 28rpx;
+				font-size: $font-md;
 				padding-top: 6rpx;
 			}
 
@@ -296,8 +320,8 @@ export default {
 		}
 
 		.form-item__error {
-			font-size: 22rpx;
-			color: #c00000;
+			font-size: $font-xs;
+			color: $color-primary;
 			padding: 6rpx 0 6rpx 160rpx;
 		}
 	}
@@ -313,7 +337,7 @@ export default {
 		button {
 			height: 80rpx;
 			line-height: 80rpx;
-			border-radius: 40rpx;
+			border-radius: $radius-xl;
 			font-size: 30rpx;
 			margin-bottom: 30rpx;
 			&::after {
@@ -322,17 +346,17 @@ export default {
 		}
 
 		.save-btn {
-			background-color: #c00000;
-			color: #fff;
+			background-color: $color-primary;
+			color: $color-white;
 			&[disabled] {
 				opacity: 0.6;
 			}
 		}
 
 		.delete-btn {
-			background-color: #fff;
-			color: #c00000;
-			border: 1px solid #c00000;
+			background-color: $color-bg;
+			color: $color-primary;
+			border: 1px solid $color-primary;
 		}
 	}
 }

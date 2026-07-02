@@ -36,7 +36,7 @@
 
 <script>
 import { mapState, mapMutations, mapGetters } from 'vuex';
-import authGuard from '@/mixins/auth-guard.js';
+import authGuard from '@/src/mixins/auth-guard.js';
 
 export default {
 	name: 'my-address',

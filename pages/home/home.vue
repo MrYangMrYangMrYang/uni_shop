@@ -29,7 +29,7 @@
 				:interval="3000"
 				:duration="1000"
 				:circular="true"
-				indicator-active-color="#C00000"
+				:indicator-active-color="primaryColor"
 			>
 				<swiper-item v-for="(item, i) in swiperList" :key="i">
 					<navigator class="swiper-item u-pressable" url="/pages/cate/cate" open-type="switchTab">
@@ -100,12 +100,13 @@
 </template>
 
 <script>
-import badgeMix from '@/mixins/tabbar-badge.js';
-import errorBoundary from '@/mixins/error-boundary.js';
+import { showToast } from '@/src/utils/toast.js';
+import badgeMix from '@/src/mixins/tabbar-badge.js';
+import errorBoundary from '@/src/mixins/error-boundary.js';
 import USkeleton from '@/components/u-skeleton/u-skeleton.vue';
 import UNetworkError from '@/components/u-network-error/u-network-error.vue';
-import { getSwiperList, getNavList, getFloorList } from '@/api/home.js';
-import env from '@/config/env.js';
+import { getSwiperList, getNavList, getFloorList } from '@/src/api/home.js';
+import env from '@/src/config/env.js';
 
 export default {
 	components: {
@@ -116,6 +117,7 @@ export default {
 
 	data() {
 		return {
+			primaryColor: '#C00000', // $color-primary
 			isLoading: true,
 			swiperList: [],
 			navList: [],
@@ -139,13 +141,13 @@ export default {
 
 		async getSwiperList() {
 			const { data: res } = await getSwiperList();
-			if (res.meta.status !== 200) return uni.$showMsg();
+			if (res.meta.status !== 200) return showToast();
 			this.swiperList = res.message;
 		},
 
 		async getNavList() {
 			const { data: res } = await getNavList();
-			if (res.meta.status !== 200) return uni.$showMsg();
+			if (res.meta.status !== 200) return showToast();
 			this.navList = res.message;
 		},
 
@@ -159,11 +161,11 @@ export default {
 
 		async getFloorList() {
 			const { data: res } = await getFloorList();
-			if (res.meta.status !== 200) return uni.$showMsg();
+			if (res.meta.status !== 200) return showToast();
 
 			res.message.forEach(floor => {
 				floor.product_list.forEach(prod => {
-					prod.url = '/subpkg/goods_list/goods_list?' + prod.navigator_url.split('?')[1];
+					prod.url = '/subpkg/goods-list/goods-list?' + prod.navigator_url.split('?')[1];
 				});
 			});
 

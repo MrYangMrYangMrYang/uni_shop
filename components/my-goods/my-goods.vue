@@ -68,7 +68,7 @@ export default {
 		return {
 			// 默认图由 u-image 组件内部兜底，不再依赖外部 CDN
 			defaultPic: '',
-			primaryColor: '#C00000'
+			primaryColor: '#C00000' // $color-primary
 		};
 	},
 	methods: {

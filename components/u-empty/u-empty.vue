@@ -106,10 +106,10 @@ export default {
 	&__btn {
 		padding: $space-2 $space-6;
 		background-color: $color-primary-600;
-		color: #fff;
+		color: $color-white;
 		font-size: $font-sm;
 		border-radius: $radius-pill;
-		box-shadow: 0 8rpx 20rpx rgba(192, 0, 0, 0.2);
+		box-shadow: 0 8rpx 20rpx $color-primary-shadow;
 
 		&:active {
 			transform: scale(0.96);

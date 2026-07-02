@@ -4,8 +4,8 @@
  * App 根组件
  * 负责应用级别的生命周期监控、全局错误捕获和全局样式导入
  */
-import { perfStart, perfEnd } from '@/utils/perf.js';
-import env from '@/config/env.js';
+import { perfStart, perfEnd } from '@/src/utils/perf.js';
+import env from '@/src/config/env.js';
 
 export default {
 	onLaunch: function () {

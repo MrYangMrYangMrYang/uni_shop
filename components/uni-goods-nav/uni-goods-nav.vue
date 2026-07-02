@@ -113,7 +113,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .flex {
 	/* #ifndef APP-NVUE */
 	display: flex;
@@ -132,8 +132,8 @@ export default {
 .uni-tab__cart-box {
 	flex: 1;
 	height: 50px;
-	background-color: #fff;
-	z-index: 900;
+	background-color: $color-bg;
+	z-index: $z-fixed;
 }
 
 .uni-tab__cart-sub-left {
@@ -146,8 +146,8 @@ export default {
 
 .uni-tab__right {
 	margin: 5px 0;
-	margin-right: 10px;
-	border-radius: 100px;
+	margin-right: $space-2;
+	border-radius: $radius-pill;
 	overflow: hidden;
 }
 
@@ -176,8 +176,8 @@ export default {
 
 .uni-tab__text {
 	margin-top: 3px;
-	font-size: 24rpx;
-	color: #646566;
+	font-size: $font-sm;
+	color: $color-icon-secondary;
 }
 
 .uni-tab__cart-button-right {
@@ -191,8 +191,8 @@ export default {
 }
 
 .uni-tab__cart-button-right-text {
-	font-size: 28rpx;
-	color: #fff;
+	font-size: $font-md;
+	color: $color-white;
 }
 
 .uni-tab__cart-button-right:active {
@@ -222,25 +222,25 @@ export default {
  */
 	padding: 0 4px;
 	line-height: 15px;
-	color: #ffffff;
+	color: $color-white;
 	text-align: center;
-	font-size: 12px;
-	background-color: #ff0000;
-	border-radius: 15px;
+	font-size: $font-sm;
+	background-color: $color-primary;
+	border-radius: $radius-md;
 }
 
 .uni-tab__dots {
 	padding: 0 4px;
 	/* width: auto;
  */
-	border-radius: 15px;
+	border-radius: $radius-md;
 }
 
 .uni-tab__color-y {
-	background-color: #ffa200;
+	background-color: $color-accent-gold;
 }
 
 .uni-tab__color-r {
-	background-color: #ff0000;
+	background-color: $color-primary;
 }
 </style>

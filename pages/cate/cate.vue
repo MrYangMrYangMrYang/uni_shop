@@ -55,12 +55,13 @@
 </template>
 
 <script>
-import badgeMix from '@/mixins/tabbar-badge.js';
-import errorBoundary from '@/mixins/error-boundary.js';
+import { showToast } from '@/src/utils/toast.js';
+import badgeMix from '@/src/mixins/tabbar-badge.js';
+import errorBoundary from '@/src/mixins/error-boundary.js';
 import USkeleton from '@/components/u-skeleton/u-skeleton.vue';
 import UNetworkError from '@/components/u-network-error/u-network-error.vue';
-import { getCategories } from '@/api/goods.js';
-import env from '@/config/env.js';
+import { getCategories } from '@/src/api/goods.js';
+import env from '@/src/config/env.js';
 
 export default {
 	components: {
@@ -92,7 +93,7 @@ export default {
 			const result = await this.withErrorBoundary(
 				async () => {
 					const { data: res } = await getCategories();
-					if (res.meta.status !== 200) return uni.$showMsg();
+					if (res.meta.status !== 200) return showToast();
 
 					// 过滤掉特定的演示或无效分类
 					this.cateList = res.message.filter(item => !['冲锋衣', '其他'].includes(item.cat_name));
@@ -109,6 +110,10 @@ export default {
 					// 安全检查：防止 active 索引因数据变化越界
 					if (this.active >= this.cateList.length) this.active = 0;
 
+					if (!this.cateList[this.active]) {
+						this.cateLevel2 = [];
+						return;
+					}
 					this.cateLevel2 = this.cateList[this.active].children.filter(
 						item => !['冲锋衣', '其他'].includes(item.cat_name)
 					);
@@ -129,7 +134,7 @@ export default {
 
 		gotoGoodsList(item3) {
 			uni.navigateTo({
-				url: '/subpkg/goods_list/goods_list?cid=' + item3.cat_id
+				url: '/subpkg/goods-list/goods-list?cid=' + item3.cat_id
 			});
 		},
 

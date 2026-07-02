@@ -56,6 +56,26 @@ $shadow-md: 0 14rpx 40rpx rgba(31, 35, 41, 0.12);
 
 $brand-gradient: $color-primary-600;
 
+// -------- 补充设计令牌 --------
+$color-white: #ffffff;
+$color-accent-red: #ef5350; // 角标红 / 未读标记
+$color-green: #07c160; // 微信绿（微信导入按钮等）
+$color-accent-gold: #ffa200; // 加购按钮金
+$color-icon-muted: #c0c4cc; // 禁用态 / 空状态图标灰
+$color-icon-secondary: #646566; // 辅助图标灰
+$color-border-strong: #e5e5e5; // 输入框 / 数字步进器边框
+$color-border-light: #eee; // 表单项分割线
+$color-primary-shadow: rgba(192, 0, 0, 0.2); // 主色按钮阴影
+$color-overlay-shadow: rgba(0, 0, 0, 0.15); // 浮层 / 下拉阴影
+$color-mask: rgba(0, 0, 0, 0.6); // 物流弹窗蒙层
+
+$radius-xl: 40rpx; // 大圆角（保存/删除按钮）
+
+$z-overlay: 1000; // 浮层 / 下拉菜单
+$z-badge: 10; // 角标
+
+$font-2xs: 20rpx; // 角标 / 极小文字
+
 // -------- Layout utilities --------
 page {
 	background-color: $color-bg-page-strong;
@@ -148,9 +168,9 @@ page {
 
 .u-btn-primary {
 	background: $color-primary-600;
-	color: #fff;
+	color: $color-white;
 	border-radius: $radius-pill;
-	box-shadow: 0 10rpx 26rpx rgba(192, 0, 0, 0.22);
+	box-shadow: 0 10rpx 26rpx $color-primary-shadow;
 }
 
 .u-btn-outline {

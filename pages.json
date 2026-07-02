@@ -30,13 +30,13 @@
 			"root": "subpkg",
 			"pages": [
 				{
-					"path": "goods_detail/goods_detail",
+					"path": "goods-detail/goods-detail",
 					"style": {
 						"navigationBarTitleText": "Sunny优购"
 					}
 				},
 				{
-					"path": "goods_list/goods_list",
+					"path": "goods-list/goods-list",
 					"style": {
 						"navigationBarTitleText": "Sunny优购",
 						"onReachBottomDistance": 150,
@@ -82,7 +82,7 @@
 					}
 				},
 				{
-					"path": "order_list/order_list",
+					"path": "order-list/order-list",
 					"style": {
 						"navigationBarTitleText": "我的订单"
 					}

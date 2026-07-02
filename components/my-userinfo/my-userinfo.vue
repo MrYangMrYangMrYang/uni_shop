@@ -1,6 +1,8 @@
 <!--
   个人中心用户信息组件
-  展示用户头像、昵称、订单统计面板以及常用功能列表
+  展示用户头像、昵称、统计面板、订单状态及常用功能列表
+
+  子组件：my-order-panel — 订单状态面板（含动态角标）
 -->
 <template>
 	<view class="my-userinfo-container">
@@ -16,73 +18,26 @@
 			<view class="panel u-card--shadow">
 				<view class="panel-body">
 					<view class="panel-item u-pressable">
-						<text class="num">8</text>
+						<text class="num">{{ userStats.favShops }}</text>
 						<text class="txt">收藏店铺</text>
 					</view>
 					<view class="panel-item u-pressable">
-						<text class="num">14</text>
+						<text class="num">{{ userStats.favGoods }}</text>
 						<text class="txt">收藏商品</text>
 					</view>
 					<view class="panel-item u-pressable">
-						<text class="num">18</text>
+						<text class="num">{{ userStats.watchedGoods }}</text>
 						<text class="txt">关注商品</text>
 					</view>
 					<view class="panel-item u-pressable">
-						<text class="num">84</text>
+						<text class="num">{{ userStats.history }}</text>
 						<text class="txt">足迹</text>
 					</view>
 				</view>
 			</view>
 
-			<!-- 第2个面板：我的订单状态统计 -->
-			<view class="panel u-card--shadow">
-				<view class="panel-title">
-					<text>我的订单</text>
-					<view class="all-order" @click="gotoOrderList(0)">
-						<text>全部订单</text>
-						<uni-icons type="arrowright" size="14" :color="primaryColor"></uni-icons>
-					</view>
-				</view>
-				<view class="panel-body">
-					<view class="panel-item u-pressable" @click="gotoOrderList(1)">
-						<view class="icon-wrap">
-							<image src="/static/my-icons/icon1.png" class="icon"></image>
-							<text class="badge" v-if="orderCounts.pendingPayment > 0">{{ orderCounts.pendingPayment }}</text>
-						</view>
-						<text class="txt">待付款</text>
-					</view>
-					<view class="panel-item u-pressable" @click="gotoOrderList(2)">
-						<view class="icon-wrap">
-							<image src="/static/my-icons/icon2.png" class="icon"></image>
-							<text class="badge" v-if="orderCounts.toShip > 0">{{ orderCounts.toShip }}</text>
-						</view>
-						<text class="txt">待发货</text>
-					</view>
-					<view class="panel-item u-pressable" @click="gotoOrderList(3)">
-						<view class="icon-wrap">
-							<image src="/static/my-icons/icon3.png" class="icon"></image>
-							<text class="badge" v-if="orderCounts.toReceive > 0">{{ orderCounts.toReceive }}</text>
-						</view>
-						<text class="txt">待收货</text>
-					</view>
-					<view class="panel-item u-pressable panel-item--completed" @click="gotoOrderList(4)">
-						<view class="icon-wrap">
-							<view class="icon icon--completed">
-								<uni-icons type="checkmarkempty" size="30" color="#e07070"></uni-icons>
-							</view>
-							<text class="badge" v-if="orderCounts.completed > 0">{{ orderCounts.completed }}</text>
-						</view>
-						<text class="txt">已完成</text>
-					</view>
-					<view class="panel-item u-pressable" @click="gotoOrderList(5)">
-						<view class="icon-wrap">
-							<image src="/static/my-icons/icon4.png" class="icon"></image>
-							<text class="badge" v-if="orderCounts.afterSales > 0">{{ orderCounts.afterSales }}</text>
-						</view>
-						<text class="txt">售后</text>
-					</view>
-				</view>
-			</view>
+			<!-- 第2个面板：订单状态（my-order-panel 组件） -->
+			<my-order-panel :primary-color="primaryColor" />
 
 			<!-- 第3个面板：功能列表 -->
 			<view class="panel u-card--shadow">
@@ -113,24 +68,29 @@
 </template>
 
 <script>
-import { mapState, mapMutations, mapGetters } from 'vuex';
+import { mapState, mapMutations } from 'vuex';
+import { DEMO_USER_STATS } from '@/src/config/mock.js';
+import MyOrderPanel from '@/components/my-order-panel/my-order-panel.vue';
 
 export default {
 	name: 'my-userinfo',
+	components: { MyOrderPanel },
+
 	data() {
 		return {
-			primaryColor: '#C00000',
-			mutedColor: '#909399'
+			primaryColor: '#C00000', // $color-primary
+			mutedColor: '#909399' // $color-text-300
 		};
 	},
+
 	computed: {
 		...mapState('m_user', ['userinfo', 'orderList']),
-		...mapGetters('m_user', ['orderCounts']),
-		// 徽标颜色：比主题红柔和，比灰色醒目
-		badgeColor() {
-			return '#ef5350';
+		// 演示统计数据，详见 config/mock.js
+		userStats() {
+			return DEMO_USER_STATS;
 		}
 	},
+
 	methods: {
 		...mapMutations('m_user', ['updateAddress', 'updateUserInfo', 'updateToken']),
 
@@ -142,7 +102,7 @@ export default {
 				confirmText: '确认退出',
 				confirmColor: this.primaryColor,
 				cancelText: '再想想',
-				cancelColor: '#999999',
+				cancelColor: '#999999', // $color-text-300
 				success: async res => {
 					if (!res.confirm) return;
 
@@ -170,13 +130,6 @@ export default {
 		contactService() {
 			uni.navigateTo({
 				url: '/subpkg/contact/contact'
-			});
-		},
-
-		// tab: 0-全部, 1-待付款, 2-待发货, 3-待收货, 4-已完成, 5-售后
-		gotoOrderList(tab) {
-			uni.navigateTo({
-				url: '/subpkg/order_list/order_list?tab=' + tab
 			});
 		},
 
@@ -218,12 +171,12 @@ page,
 			height: 160rpx;
 			border-radius: $radius-pill;
 			border: 4rpx solid rgba(255, 255, 255, 0.6);
-			box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+			box-shadow: 0 8rpx 24rpx $color-overlay-shadow;
 		}
 
 		.nickname {
 			font-size: $font-lg;
-			color: #fff;
+			color: $color-white;
 			font-weight: 800;
 			margin-top: $space-3;
 			text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
@@ -241,27 +194,6 @@ page,
 		border-radius: $radius-lg;
 		margin-bottom: $space-3;
 		overflow: hidden;
-
-		.panel-title {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			line-height: 88rpx;
-			padding: 0 $space-3;
-			font-size: $font-md;
-			font-weight: 800;
-			color: $color-text-900;
-			border-bottom: 1px solid $color-border-1;
-
-			.all-order {
-				display: flex;
-				align-items: center;
-				gap: 4rpx;
-				font-size: $font-xs;
-				color: $color-primary;
-				font-weight: normal;
-			}
-		}
 
 		.panel-body {
 			display: flex;
@@ -285,48 +217,6 @@ page,
 					font-size: $font-xs;
 					color: $color-text-500;
 					margin-top: $space-1;
-				}
-
-				&--completed .txt {
-					margin-top: 15rpx;
-				}
-
-				.icon-wrap {
-					position: relative;
-
-					.icon {
-						width: 56rpx;
-						height: 56rpx;
-					}
-
-					.icon--completed {
-						display: flex;
-						align-items: center;
-						justify-content: center;
-					}
-
-					.icon-uni {
-						display: block;
-					}
-
-					.badge {
-						position: absolute;
-						top: -10rpx;
-						right: -6rpx;
-						min-width: 30rpx;
-						height: 30rpx;
-						padding: 0 6rpx;
-						background-color: #ef5350; // 比主题红柔和，比灰色醒目
-						color: #ffffff;
-						font-size: 20rpx;
-						line-height: 30rpx;
-						text-align: center;
-						border-radius: $radius-pill;
-						border: 2rpx solid #ffffff;
-						z-index: 10;
-						font-weight: 600;
-						box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
-					}
 				}
 			}
 		}

@@ -39,7 +39,9 @@ import UEmpty from '@/components/u-empty/u-empty.vue';
 export default {
 	components: { 'u-empty': UEmpty },
 	data() {
-		return { primaryColor: '#C00000' };
+		return {
+			primaryColor: '#C00000' // $color-primary
+		};
 	},
 	computed: {
 		...mapState('m_user', ['addressList'])
@@ -61,6 +63,20 @@ export default {
 			uni.chooseAddress({
 				success(res) {
 					if (!res.userName) return;
+					// 重复地址校验：相同收货人 + 电话 + 完整地址视为重复
+					const isDuplicate = vm.addressList.some(
+						addr =>
+							addr.userName === res.userName &&
+							addr.telNumber === res.telNumber &&
+							addr.provinceName === res.provinceName &&
+							addr.cityName === res.cityName &&
+							addr.countyName === res.countyName &&
+							addr.detailInfo === res.detailInfo
+					);
+					if (isDuplicate) {
+						uni.showToast({ title: '该地址已存在', icon: 'none' });
+						return;
+					}
 					vm.$store.commit('m_user/addAddress', {
 						userName: res.userName,
 						telNumber: res.telNumber,
@@ -163,11 +179,11 @@ export default {
 		}
 		.add-btn {
 			background-color: $color-primary;
-			color: #fff;
+			color: $color-white;
 		}
 		.wx-btn {
-			background-color: #07c160;
-			color: #fff;
+			background-color: $color-green;
+			color: $color-white;
 		}
 	}
 }

@@ -21,7 +21,11 @@
 - ⚡ **性能优化**：分包加载策略 + 瀑布流布局 + 骨架屏体系 + 首页三接口并发
 - 🔐 **安全可靠**：Token 机制登录 + 微信原生接口集成 + 登录守卫
 - 🎨 **交互丰富**：二级联动导航、滑动删除、实时搜索建议、瀑布流布局
+- 🏗️ **DRY 架构**：共享购物车组件消除双页 ~70% 重复代码
+- 🎯 **设计令牌**：60+ SCSS 变量，全项目统一引用
+- ♿ **无障碍**：aria-label / role 等属性标注关键交互元素
 - 🛡️ **防御性设计**：全局错误边界 + 网络异常兜底 + 重试恢复机制
+- 📦 **演示数据中心**：src/config/mock.js 集中管理所有 mock 数据，关注点分离
 - 💰 **价格精度**：内部整数分存储，消除浮点精度问题（前端经典考点）
 
 ---
@@ -78,15 +82,15 @@
 | 模块         | 实现状态     | 说明                                                                                                                                                                                                    |
 | ------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 微信支付     | 流程演示     | [my-settle.vue](./components/my-settle/my-settle.vue) 中的 `payOrder` 方法完整实现了"创建订单 → 获取预支付参数 → 发起微信支付 → 验证支付结果"四步流程，但因后端接口需商户号配置，未在结算按钮中实际调用 |
-| 物流查询     | Mock 数据    | [order_list.vue](./subpkg/order_list/order_list.vue) 中的物流详情为前端写死的演示数据，未对接物流接口                                                                                                   |
+| 物流查询     | Mock 数据    | [order-list.vue](./subpkg/order-list/order-list.vue) 使用 [mock.js](./src/config/mock.js) 中的 `DEMO_LOGISTICS` 演示时间线                                                                              |
 | 客服系统     | 自动回复模拟 | [contact.vue](./subpkg/contact/contact.vue) 通过 setTimeout 模拟客服回复，未接入 IM SDK                                                                                                                 |
 | 商品规格选择 | UI 演示      | 商品详情页未实现 SKU 多维规格选择                                                                                                                                                                       |
 | 地区选择     | 微信原生     | [address-edit.vue](./subpkg/address-edit/address-edit.vue) 使用微信原生 `<picker mode="region">` 组件                                                                                                   |
-| 个人中心统计 | 假数据       | [my-userinfo.vue](./components/my-userinfo/my-userinfo.vue) 顶部"收藏店铺/收藏商品/关注商品/足迹"数字为写死演示值                                                                                       |
+| 个人中心统计 | Demo 数据    | 参见 [mock.js](./src/config/mock.js) `DEMO_USER_STATS`                                                                                                                                                  |
 
 ### 🟠 环境限制说明
 
-- **登录 Token**：[my-login.vue](./components/my-login/my-login.vue) 因演示环境后端接口限制，使用硬编码测试 Token。生产环境应替换为接口返回的真实 Token，并配合 `utils/request.js` 的 401 拦截器实现自动续期
+- **登录 Token**：[my-login.vue](./components/my-login/my-login.vue) 因演示环境后端接口限制，使用 [mock.js](./src/config/mock.js) 中的 `DEMO_TOKEN`。生产环境应替换为接口返回的真实 Token，并配合 [request.js](./src/utils/request.js) 的 401 拦截器实现自动续期
 - **API 地址**：使用 itheima 商城公开测试接口，仅供学习演示，请勿用于生产
 - **manifest.json** 中 `urlCheck: false` 仅用于开发调试，生产环境必须开启
 
@@ -96,7 +100,7 @@
 
 - 商品浏览（首页楼层、分类二级联动、商品列表瀑布流、商品详情）
 - 购物车（增删改查、全选、滑动删除、合计计算、本地持久化）
-- 收货地址管理（新增、编辑、删除、默认地址排他、微信导入）
+- 收货地址管理（新增、编辑、删除、默认地址排他、微信导入、重复地址拦截）
 - 订单列表（状态分类、支付倒计时、订单生命周期操作）
 - 搜索（历史记录、搜索建议、防抖、去重）
 - 用户登录（微信授权、Token 持久化、退出登录、登录守卫）
@@ -110,9 +114,10 @@
 | [Uni-app](https://uniapp.dcloud.io/)                                                     | Vue.js 2.x | 核心开发框架              |
 | [Vuex](https://vuex.vuejs.org/)                                                          | 3.x        | 全局状态管理 + 自研持久化 |
 | [@escook/request-miniprogram](https://www.npmjs.com/package/@escook/request-miniprogram) | ^0.2.1     | 网络请求封装              |
-| SCSS (Sass)                                                                              | -          | 70+ 变量设计系统          |
+| SCSS (Sass)                                                                              | -          | 60+ 令牌设计系统          |
 | uni-ui                                                                                   | -          | UI 组件库基础             |
 | [Vitest](https://vitest.dev/)                                                            | ^1.0       | 单元测试框架              |
+| [miniprogram-automator](https://developers.weixin.qq.com/miniprogram/dev/devtools/auto/) | ^0.12      | E2E 自动化测试            |
 | [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/)                         | ^8 + ^3    | 代码规范 + 格式化         |
 | [husky](https://typicode.github.io/husky/) + [commitlint](https://commitlint.js.org/)    | ^8 + ^18   | Git hooks + 提交规范      |
 | [GitHub Actions](https://github.com/features/actions)                                    | -          | CI 自动 lint + test       |
@@ -146,7 +151,6 @@
 
 - 富文本渲染商品详情
 - 图片大图预览功能
-- 多规格选择下单
 - 骨架屏加载态 + 网络错误兜底
 
 #### 购物车
@@ -190,11 +194,11 @@ graph TB
         D[pages/my - 个人中心]
     end
     subgraph subpkg 分包
-        E[goods_detail - 商品详情]
-        F[goods_list - 商品列表]
+        E[goods-detail - 商品详情]
+        F[goods-list - 商品列表]
         G[search - 搜索]
         H[order - 确认订单]
-        I[order_list - 订单列表]
+        I[order-list - 订单列表]
         J[address-list - 地址列表]
         K[address-edit - 编辑地址]
         L[cart - 购物车详情]
@@ -253,23 +257,23 @@ stateDiagram-v2
 
 基于 `@escook/request-miniprogram` 二次封装，补齐了以下企业级能力：
 
-| 能力             | 实现                                                        |
-| ---------------- | ----------------------------------------------------------- |
-| Token 自动注入   | `beforeRequest` 拦截器，`/my/` 路径自动携带 Authorization   |
-| 401 自动跳登录   | `afterRequest` 拦截器 + 防抖（5s 超时自动复位）             |
-| Loading 引用计数 | 并发请求共享一个 loading，最后完成才关闭                    |
-| 错误码映射       | 400/401/403/404/500/502/503/504 → 用户友好文案              |
-| 超时提示         | 网络超时/断网分别给出针对性提示 + 提交 error state          |
-| 价格边界转换     | 响应拦截器 元→分，请求拦截器 分→元，递归处理嵌套对象        |
-| 请求性能计时     | `beforeRequest` / `afterRequest` 自动记录接口耗时           |
-| API 分层         | `api/home.js` / `api/goods.js` / `api/user.js` 按业务域组织 |
+| 能力             | 实现                                                      |
+| ---------------- | --------------------------------------------------------- |
+| Token 自动注入   | `beforeRequest` 拦截器，`/my/` 路径自动携带 Authorization |
+| 401 自动跳登录   | `afterRequest` 拦截器 + 防抖（5s 超时自动复位）           |
+| Loading 引用计数 | 并发请求共享一个 loading，最后完成才关闭                  |
+| 错误码映射       | 400/401/403/404/500/502/503/504 → 用户友好文案            |
+| 超时提示         | 网络超时/断网分别给出针对性提示 + 提交 error state        |
+| 价格边界转换     | 响应拦截器 元→分，请求拦截器 分→元，递归处理嵌套对象      |
+| 请求性能计时     | `beforeRequest` / `afterRequest` 自动记录接口耗时         |
+| API 分层         | `src/api/home.js` / `src/api/goods.js` 按业务域组织       |
 
 ### 2. 自研持久化插件
 
 替代每个模块手写 `saveXxxToStorage` 的样板代码，通过 Vuex plugin + `store.subscribe` 实现声明式持久化：
 
 ```javascript
-// store/store.js — 一行配置替代 6 个存储函数
+// src/store/store.js — 一行配置替代 6 个存储函数
 createPersistedState({
 	paths: {
 		'm_cart.cart': 'cart',
@@ -281,7 +285,16 @@ createPersistedState({
 
 初始化时自动从 Storage 恢复到 state，mutation 命中时自动写入 Storage。支持嵌套路径、损坏数据降级。
 
-### 3. 价格精度方案（前端经典面试考点）
+### 3. 演示数据集中管理
+
+所有前端写死的演示数据统一收敛到 `src/config/mock.js`，每个数据项附带注释说明：
+
+- 为何需要 mock（后端接口限制 / 非核心功能）
+- 生产环境应如何替换（API 端点 / store getter）
+
+涉及：登录 Token、用户统计数据、品牌/店铺列表、热搜词、物流追踪。这替代了原先散落在 5 个组件中的"裸硬编码"，体现了 **关注点分离** 原则。
+
+### 4. 价格精度方案（前端经典面试考点）
 
 **问题**：`0.1 + 0.2 !== 0.3`，电商金额用浮点数直接运算会产生精度误差。
 
@@ -294,7 +307,7 @@ createPersistedState({
 
 `3 × 333分 = 999分` 永远精确，不依赖于 `Number.toFixed()`。
 
-### 4. 全局错误边界
+### 5. 全局错误边界
 
 从 API 层到页面的完整错误处理链路：
 
@@ -308,34 +321,46 @@ request.js 拦截器 → m_error/setError → error-boundary mixin → u-network
 - 修复了双重 toast 问题（`afterRequest` 不再弹 toast，统一由 `handleRequestError` 处理）
 - 修复了 `my-settle` 倒计时定时器泄漏（新增 `beforeDestroy` 清理）
 
-### 5. 骨架屏体系
+### 6. 骨架屏体系
 
-自研 `u-skeleton` 组件，3 种模式（list/card/detail）× 4 个核心页面（home/cate/goods_list/goods_detail），shimmer 动画 + SCSS 变量统一管理。
+自研 `u-skeleton` 组件，3 种模式（list/card/detail）× 4 个核心页面（home/cate/goods-list/goods-detail），shimmer 动画 + SCSS 变量统一管理。
 
-### 6. 性能优化
+### 7. 性能优化
 
-| 优化项             | 实施                                           |
-| ------------------ | ---------------------------------------------- |
-| 首页三接口并发     | `await Promise.all([...])` 替换 3 个串行 await |
-| 订单定时器按需启停 | 仅 `status===0` 订单存在时运行 `setInterval`   |
-| 图片懒加载         | `u-image` 组件默认 `lazy-load="true"`          |
-| 请求性能计时       | request.js 拦截器自动记录接口耗时              |
-| 页面加载追踪       | `perf-tracker` mixin 自动记录 onLoad→onReady   |
-| 包体积分析         | `npm run analyze:size` → 目录占比 + 超限检查   |
+| 优化项             | 实施                                                   |
+| ------------------ | ------------------------------------------------------ |
+| 首页三接口并发     | `await Promise.all([...])` 替换 3 个串行 await         |
+| 订单定时器按需启停 | 仅 `status===0` 订单存在时运行 `setInterval`           |
+| 图片懒加载         | `u-image` 组件默认 `lazy-load="true"`                  |
+| 请求性能计时       | request.js 拦截器自动记录接口耗时                      |
+| 页面加载追踪       | `src/utils/perf.js` perfStart/perfEnd 记录页面加载耗时 |
+| 包体积分析         | `npm run analyze:size` → 目录占比 + 超限检查           |
 
-### 7. 测试体系
+### 8. 测试体系
+
+**单元测试**：109 条用例覆盖 utils / store / mixins / components 四个维度。
+
+**E2E 测试**：基于 miniprogram-automator，覆盖"首页 → 搜索 → 详情 → 加购 → 结算"完整购物流程（需微信开发者工具）。`npm run test:e2e`
+
+**无障碍**：`goods-detail.vue` 作为 A11y 示范页面，标注了 aria-label / role 等关键交互属性。
 
 | 维度           | 覆盖                                                          |
 | -------------- | ------------------------------------------------------------- |
-| **utils**      | price(25) + persist(7) + request(9)                           |
-| **store**      | cart(14) + user(14)                                           |
-| **mixins**     | auth-guard(5)                                                 |
-| **components** | my-settle(12) + my-goods(9) + u-empty(9) + u-network-error(5) |
-| **总计**       | **10 测试文件，109 条用例**                                   |
+| **utils**      | price(25) + persist(7) + request(18) + toast(8)               |
+| **store**      | cart(20) + user(20) + error(13)                               |
+| **mixins**     | auth-guard(5) + error-boundary(14)                            |
+| **components** | my-settle(13) + my-goods(9) + u-empty(9) + u-network-error(5) |
+| **总计**       | **13 测试文件，166 条用例**                                   |
 
-### 8. 购物车双页一致性
+### 9. 购物车共享组件架构
 
-`pages/cart`（TabBar）和 `subpkg/cart`（内部跳转）共享同一 Vuex store，删除确认、Toast 反馈、商品交互逻辑完全一致。
+`pages/cart`（TabBar）和 `subpkg/cart`（内部跳转）两个购物车页面原本存在 ~70% 重复代码。重构后提取出 `my-cart-content` 共享组件：
+
+- **共享逻辑**：Vuex 映射、商品列表渲染、结算栏、空状态、侧滑删除
+- **差异化通过 Props 控制**：`swipeDeleteStrategy`（'direct' | 'confirm'）、`primaryColor`
+- **各页面仅保留独特职责**：TabBar 页的登录守卫 + 角标同步；分包页的自定义导航栏样式
+
+这体现了 **DRY（Don't Repeat Yourself）** 原则在实际项目中的应用。
 
 ---
 
@@ -377,7 +402,10 @@ Vuex 3.x 是 Vue 2 生态的标准状态管理方案。自研的持久化插件�
 - **ESLint + Prettier**：0 errors
 - **husky + commitlint**：commit 自动校验格式 + Conventional Commits
 - **GitHub Actions**：Push → 自动 lint:check + format:check + vitest run
-- **Vitest**：10 测试文件 / 109 用例，覆盖 utils、store、mixins、components
+- **Vitest**：13 测试文件 / 166 用例，覆盖 utils、store、mixins、components
+- **E2E**：基于 miniprogram-automator 的完整购物流程端到端测试
+- **SCSS 令牌规范化**：80+ SCSS 设计令牌，全项目引用变量而非硬编码值
+- **DRY 架构**：my-cart-content 共享组件消除双页重复代码
 - **条件编译 ESLint 插件** `eslint-plugin-uni-conditional`：自研，处理 uni-app 的 `#ifdef VUE3` / `#endif` 编译指令
 
 </details>
@@ -388,76 +416,85 @@ Vuex 3.x 是 Vue 2 生态的标准状态管理方案。自研的持久化插件�
 
 ```text
 uni_shop/
-├── __tests__/                # 测试文件
-│   ├── components/           # 组件测试
-│   ├── mixins/               # mixin 测试
-│   ├── store/                # store 测试
-│   └── setup.js              # 全局 mock（uni/wx/Storage）
-├── api/                      # API 接口层（按业务域组织）
-│   ├── goods.js
-│   ├── home.js
-│   └── user.js
-├── components/               # 业务自定义组件
-│   ├── my-address/           # 收货地址组件
-│   ├── my-goods/             # 商品组件（formatPrice filter）
-│   ├── my-login/             # 登录组件
-│   ├── my-search/            # 搜索组件
-│   ├── my-settle/            # 结算组件（防抖 + 定时器清理）
-│   ├── my-userinfo/          # 用户信息组件
-│   ├── u-empty/              # 空状态组件（5 种 mode）
-│   ├── u-image/              # 增强图片组件（懒加载 + 错误兜底）
-│   ├── u-network-error/      # 网络异常兜底组件（5 个页面接入）
-│   ├── u-skeleton/           # 骨架屏组件（3 种模式）
-│   ├── uni-goods-nav/        # 商品导航组件
-│   ├── uni-icons/            # 图标组件
-│   ├── uni-number-box/       # 数字输入框组件
-│   ├── uni-search-bar/       # 搜索栏组件
-│   ├── uni-swipe-action/     # 滑动操作组件
-│   └── uni-tag/              # 标签组件
-├── config/
-│   └── env.js                # 环境配置（含 perfLog 和采样率）
-├── mixins/                   # 逻辑混入
-│   ├── auth-guard.js         # 登录守卫 mixin
-│   ├── custom-navbar.js      # 自定义导航栏 mixin
-│   ├── error-boundary.js     # 错误边界 mixin（withErrorBoundary + retry）
-│   ├── perf-tracker.js       # 页面性能追踪 mixin
-│   └── tabbar-badge.js       # TabBar 购物车角标 mixin
-├── pages/                    # 主包页面（TabBar 页面）
-│   ├── home/                 # 首页（网络兜底 + skeleton）
-│   ├── cate/                 # 分类页（网络兜底）
-│   ├── cart/                 # 购物车页
-│   └── my/                   # 个人中心页
-├── scripts/
-│   └── analyze-bundle.js     # 包体积分析脚本
-├── store/                    # Vuex 状态管理
-│   ├── cart.js               # 购物车模块（整数分运算）
-│   ├── error.js              # 全局错误状态模块
-│   ├── store.js              # Store 入口 + 持久化插件
-│   └── user.js               # 用户 / 订单模块
+├── src/                      # 业务模块集中管理
+│   ├── api/                  #   API 接口层（按业务域组织）
+│   │   ├── goods.js
+│   │   └── home.js
+│   ├── config/               #   环境配置 + Mock 数据中心
+│   │   ├── env.js            #     环境配置（含 perfLog 和采样率）
+│   │   └── mock.js           #     演示数据中心
+│   ├── mixins/               #   逻辑混入
+│   │   ├── auth-guard.js     #     登录守卫 mixin
+│   │   ├── custom-navbar.js  #     自定义导航栏 mixin
+│   │   ├── error-boundary.js #     错误边界 mixin（withErrorBoundary + retry）
+│   │   └── tabbar-badge.js   #     TabBar 购物车角标 mixin
+│   ├── store/                #   Vuex 状态管理
+│   │   ├── cart.js           #     购物车模块（整数分运算）
+│   │   ├── error.js          #     全局错误状态模块
+│   │   ├── store.js          #     Store 入口 + 持久化插件
+│   │   └── user.js           #     用户 / 地址 / 订单模块
+│   └── utils/                #   工具模块
+│       ├── toast.js          #     Toast 工具（替代全局 uni.$showMsg）
+│       ├── perf.js           #     性能监控工具
+│       ├── persist.js        #     Vuex 持久化插件
+│       ├── price.js          #     价格工具（元↔分 + formatPrice + 迁移）
+│       └── request.js        #     HTTP 封装（拦截器 + 价格转换 + 计时）
+├── components/               # 组件（easycom 自动扫描）
+│   ├── my-cart-content/      #   共享购物车组件（DRY）
+│   ├── my-order-panel/       #   订单状态面板
+│   ├── my-address/           #   收货地址组件
+│   ├── my-goods/             #   商品组件（formatPrice filter）
+│   ├── my-login/             #   登录组件
+│   ├── my-search/            #   搜索组件
+│   ├── my-settle/            #   结算组件（防抖 + 定时器清理）
+│   ├── my-userinfo/          #   用户信息组件
+│   ├── u-empty/              #   空状态组件（5 种 mode）
+│   ├── u-image/              #   增强图片组件（懒加载 + 错误兜底）
+│   ├── u-network-error/      #   网络异常兜底组件（5 个页面接入）
+│   ├── u-skeleton/           #   骨架屏组件（3 种模式 × 4 页面）
+│   ├── uni-goods-nav/        #   商品导航组件
+│   ├── uni-icons/            #   图标组件
+│   ├── uni-number-box/       #   数字输入框组件
+│   ├── uni-search-bar/       #   搜索栏组件
+│   ├── uni-swipe-action/     #   滑动操作组件
+│   └── uni-swipe-action-item/#   滑动操作项组件
+├── tests/                    # 测试统一管理
+│   ├── unit/                 #   单元测试（utils / store / mixins / components）
+│   │   ├── components/
+│   │   ├── mixins/
+│   │   ├── store/
+│   │   ├── utils/
+│   │   └── setup.js          #     全局 mock（uni/wx/Storage）
+│   └── e2e/                  #   E2E 端到端测试
+│       ├── full-flow.spec.js #     完整购物流程测试
+│       └── setup.js          #     环境启动配置
+├── pages/                    # 主包页面（TabBar）
+│   ├── home/                 #   首页（网络兜底 + skeleton）
+│   ├── cate/                 #   分类页（网络兜底）
+│   ├── cart/                 #   购物车页
+│   └── my/                   #   个人中心页
 ├── subpkg/                   # 分包页面
-│   ├── address-edit/         # 编辑地址
-│   ├── address-list/         # 地址列表
-│   ├── cart/                 # 购物车详情
-│   ├── contact/              # 在线客服
-│   ├── goods_detail/         # 商品详情（网络兜底 + skeleton）
-│   ├── goods_list/           # 商品列表（网络兜底 + skeleton）
-│   ├── order/                # 订单确认（整数分存储）
-│   ├── order_list/           # 订单列表（formatPrice filter）
-│   └── search/               # 搜索页（网络兜底）
-├── utils/                    # 工具模块
-│   ├── __tests__/            # utils 单元测试
-│   ├── perf.js               # 性能监控工具
-│   ├── persist.js            # Vuex 持久化插件
-│   ├── price.js              # 价格工具（元↔分 + formatPrice + 迁移）
-│   └── request.js            # HTTP 封装（拦截器 + 价格转换 + 计时）
+│   ├── address-edit/         #   编辑地址（含重复校验）
+│   ├── address-list/         #   地址列表（含微信导入去重）
+│   ├── cart/                 #   购物车详情
+│   ├── contact/              #   在线客服
+│   ├── goods-detail/         #   商品详情（网络兜底 + skeleton）
+│   ├── goods-list/           #   商品列表（网络兜底 + skeleton）
+│   ├── order/                #   订单确认（整数分存储）
+│   ├── order-list/           #   订单列表（formatPrice filter）
+│   └── search/               #   搜索页（网络兜底）
 ├── static/                   # 静态资源
+├── scripts/                  # 构建脚本
+│   └── analyze-bundle.js     #   包体积分析脚本
+├── eslint-plugin-uni-conditional/  # 自研 ESLint 插件
 ├── App.vue                   # 应用入口（全局错误捕获 + 性能计时）
 ├── main.js                   # 主入口（formatPrice filter + 数据迁移）
 ├── pages.json                # 页面路由配置
-├── manifest.json              # 应用配置（AppID、权限等）
-├── package.json              # 项目依赖配置
+├── manifest.json             # 应用配置（AppID、权限等）
+├── uni.scss                  # 全局 SCSS 变量（60+ 设计 Token）
+├── commitlint.config.js      # Commitlint 配置
 ├── vitest.config.js          # Vitest 配置
-└── uni.scss                  # 全局 SCSS 变量（70+ 设计 Token）
+└── package.json              # 项目依赖配置
 ```
 
 ---
@@ -530,6 +567,38 @@ npm run dev:mp-weixin
 
 ---
 
+## 🚢 发布流程
+
+本项目基于 uni-app 开发，编译目标为微信小程序。发布 = 编译 → 上传 → 微信后台审核。
+
+### 发布前检查清单
+
+- [ ] `npm run lint:check` 零错误
+- [ ] `npm test` 全部通过
+- [ ] `npm run analyze:size` 包体积不超限（主包 2MB / 分包 2MB）
+- [ ] `manifest.json` 中 `mp-weixin.setting.urlCheck` 设为 `true`
+- [ ] `src/config/env.js` 中 `apiBaseUrl` 指向生产环境接口
+
+### 发布步骤
+
+```bash
+# 1. HBuilderX 生产编译
+#    菜单：发行 -> 小程序-微信 -> 填写版本号 -> 编译
+#    产物：unpackage/dist/build/mp-weixin
+
+# 2. 微信开发者工具
+#    打开编译产物 -> 上传 -> 填写版本描述
+
+# 3. 微信公众平台
+#    mp.weixin.qq.com -> 版本管理 -> 提交审核 -> 发布
+```
+
+### CI 保障
+
+每次 push 到 `main` 自动执行 lint → 格式检查 → 单元测试 + 覆盖率 → 包体积检查。详见 [ci.yml](./.github/workflows/ci.yml)。
+
+---
+
 ## ⚙️ 项目配置说明
 
 ### 微信小程序配置 ([manifest.json](manifest.json))
@@ -556,21 +625,21 @@ npm run dev:mp-weixin
 
 项目使用 Vuex 进行全局状态管理，主要包含三个模块：
 
-#### 购物车模块 ([store/cart.js](store/cart.js))
+#### 购物车模块 ([cart.js](./src/store/cart.js))
 
 - 商品列表管理
 - 选中状态控制
 - 总价计算（整数分运算，无浮点精度问题）
 - 本地持久化
 
-#### 用户模块 ([store/user.js](store/user.js))
+#### 用户模块 ([user.js](./src/store/user.js))
 
 - Token 存储与 401 自动清理
 - 用户信息管理
 - 收货地址管理（新增/编辑/删除/默认排他）
 - 订单管理（状态流转、过期清理、倒计时）
 
-#### 错误模块 ([store/error.js](store/error.js))
+#### 错误模块 ([error.js](./src/store/error.js))
 
 - 全局错误状态（hasError / errorMessage / isNetworkError）
 - 页面级 error-boundary mixin 消费

@@ -20,8 +20,9 @@
 </template>
 
 <script>
+import { showToast } from '@/src/utils/toast.js';
 import { mapGetters, mapMutations, mapState } from 'vuex';
-import authGuard from '@/mixins/auth-guard.js';
+import authGuard from '@/src/mixins/auth-guard.js';
 
 export default {
 	name: 'my-settle',
@@ -30,7 +31,7 @@ export default {
 		return {
 			seconds: 3,
 			timer: null,
-			primaryColor: '#C00000'
+			primaryColor: '#C00000' // $color-primary
 		};
 	},
 	computed: {
@@ -52,7 +53,7 @@ export default {
 		settlement() {
 			// 防抖：避免连续点击
 			if (this._settleLock) return;
-			if (!this.checkedCount) return uni.$showMsg('请选择要结算的商品！');
+			if (!this.checkedCount) return showToast('请选择要结算的商品！');
 			if (!this.token) return this.delayNavigate();
 			this._settleLock = true;
 			// 清除"立即购买"标记，否则 order 页会优先展示上一次立即购买的商品
@@ -81,20 +82,20 @@ export default {
 			};
 
 			const { data: res } = await uni.$http.post('/api/public/v1/my/orders/create', orderInfo);
-			if (res.meta.status !== 200) return uni.$showMsg('创建订单失败！');
+			if (res.meta.status !== 200) return showToast('创建订单失败！');
 			const orderNumber = res.message.order_number;
 
 			const { data: res2 } = await uni.$http.post('/api/public/v1/my/orders/req_unifiedorder', {
 				order_number: orderNumber
 			});
-			if (res2.meta.status !== 200) return uni.$showMsg('预付订单生成失败！');
+			if (res2.meta.status !== 200) return showToast('预付订单生成失败！');
 			const payInfo = res2.message.pay;
 
 			const [err] = await uni.requestPayment(payInfo);
-			if (err) return uni.$showMsg('订单未支付！');
+			if (err) return showToast('订单未支付！');
 
 			const { data: res3 } = await uni.$http.post('/api/public/v1/my/orders/chkOrder', { order_number: orderNumber });
-			if (res3.meta.status !== 200) return uni.$showMsg('订单未支付！');
+			if (res3.meta.status !== 200) return showToast('订单未支付！');
 
 			uni.showToast({
 				title: '订单支付完成！',

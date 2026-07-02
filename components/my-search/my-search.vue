@@ -6,7 +6,7 @@
 <template>
 	<view class="my-search-container" @click="searchBoxHandler" :style="{ 'background-color': bgcolor }">
 		<view class="my-search-box" :style="{ 'border-radius': radius + 'px' }">
-			<uni-icons type="search" size="18" color="#999999"></uni-icons>
+			<uni-icons type="search" size="18" :color="placeholderColor"></uni-icons>
 			<text class="placeholder">搜索</text>
 		</view>
 	</view>
@@ -18,7 +18,7 @@ export default {
 	props: {
 		bgcolor: {
 			type: String,
-			default: '#C00000'
+			default: '#C00000' // $color-primary
 		},
 		radius: {
 			type: Number,
@@ -26,7 +26,9 @@ export default {
 		}
 	},
 	data() {
-		return {};
+		return {
+			placeholderColor: '#999999' // $color-text-300
+		};
 	},
 	methods: {
 		searchBoxHandler() {
@@ -44,7 +46,7 @@ export default {
 
 	.my-search-box {
 		height: 28px;
-		background-color: #ffffff;
+		background-color: $color-white;
 		width: 100%;
 		display: flex;
 		justify-content: center;
@@ -53,7 +55,7 @@ export default {
 		.placeholder {
 			font-size: 13px;
 			margin-left: 4rpx;
-			color: #999999;
+			color: $color-text-300;
 		}
 	}
 }

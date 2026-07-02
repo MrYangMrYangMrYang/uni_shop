@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import badgeMix from '@/mixins/tabbar-badge.js';
+import badgeMix from '@/src/mixins/tabbar-badge.js';
 import { mapState } from 'vuex';
 
 export default {

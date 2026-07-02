@@ -7,7 +7,7 @@
 		<!-- 登录卡片 -->
 		<view class="login-card u-card--shadow">
 			<view class="icon-box">
-				<uni-icons type="contact-filled" size="80" color="#C00000"></uni-icons>
+				<uni-icons type="contact-filled" size="80" :color="primaryColor"></uni-icons>
 			</view>
 			<view class="welcome-text">欢迎回来</view>
 			<view class="tips-text">登录后即可查看订单并享受更多权益</view>
@@ -25,12 +25,16 @@
 </template>
 
 <script>
+import { showToast } from '@/src/utils/toast.js';
 import { mapMutations, mapState } from 'vuex';
+import { DEMO_TOKEN } from '@/src/config/mock.js';
 
 export default {
 	name: 'my-login',
 	data() {
-		return {};
+		return {
+			primaryColor: '#C00000' // $color-primary
+		};
 	},
 	computed: {
 		...mapState('m_user', ['redirectInfo'])
@@ -39,7 +43,7 @@ export default {
 		...mapMutations('m_user', ['updateUserInfo', 'updateToken', 'updateRedirectInfo']),
 
 		getUserInfo(e) {
-			if (e.detail.errMsg === 'getUserInfo:fail auth deny') return uni.$showMsg('您取消了登录授权！');
+			if (e.detail.errMsg === 'getUserInfo:fail auth deny') return showToast('您取消了登录授权！');
 
 			this.updateUserInfo(e.detail.userInfo);
 			this.getToken(e.detail);
@@ -47,27 +51,30 @@ export default {
 
 		async getToken(_info) {
 			const [err, res] = await uni.login().catch(err => err);
-			if (err || res.errMsg !== 'login:ok') return uni.$showMsg('登录失败！');
+			if (err || res.errMsg !== 'login:ok') return showToast('登录失败！');
 
-			uni.$showMsg('登录成功！');
+			showToast('登录成功！');
 
-			// 演示环境接口限制，使用硬编码测试 Token。实际开发应使用接口返回的数据
-			this.updateToken(
-				'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjEyLCJpYXQiOjE1MjU0MDIyMjMsImV4cCI6MTUyNTQ4ODYyM30.g-4GtEQNPwT_Xs0Pq7Lrco_9DfHQQsBiOKZerkO-O-o'
-			);
+			// 演示 Token，详见 config/mock.js
+			this.updateToken(DEMO_TOKEN);
 
 			this.navigateBack();
 		},
 
-		// 登录成功后回跳：根据 redirectInfo 指定的路径和打开方式跳转
+		// 登录成功后回跳：区分 TabBar 页面 / 非 TabBar 页面的跳转方式
 		navigateBack() {
-			if (this.redirectInfo && this.redirectInfo.openType === 'switchTab') {
+			if (!this.redirectInfo) return;
+			const { openType, from } = this.redirectInfo;
+
+			if (openType === 'switchTab') {
 				uni.switchTab({
-					url: this.redirectInfo.from,
-					complete: () => {
-						// 跳转完成后清空重定向信息，防止下次登录冲突
-						this.updateRedirectInfo(null);
-					}
+					url: from,
+					complete: () => this.updateRedirectInfo(null)
+				});
+			} else if (openType === 'navigateTo') {
+				uni.navigateTo({
+					url: from,
+					complete: () => this.updateRedirectInfo(null)
 				});
 			}
 		}
@@ -85,7 +92,7 @@ export default {
 
 	.login-card {
 		width: 100%;
-		background-color: #fff;
+		background-color: $color-white;
 		padding: $space-7 $space-6;
 		display: flex;
 		flex-direction: column;
@@ -125,7 +132,7 @@ export default {
 			background-color: $color-primary-600;
 			font-size: $font-md;
 			font-weight: 600;
-			box-shadow: 0 12rpx 30rpx rgba(192, 0, 0, 0.2);
+			box-shadow: 0 12rpx 30rpx $color-primary-shadow;
 			border: none;
 			margin-bottom: $space-6;
 		}
