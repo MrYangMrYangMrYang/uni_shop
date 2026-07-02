@@ -13,26 +13,28 @@
 
 ## 📑 目录
 
-- [📖 项目简介](#项目简介)
-- [🚀 项目特性](#项目特性)
-- [📌 功能边界说明](#功能边界说明)
-- [🛠️ 技术栈](#技术栈)
-- [📦 核心功能模块](#核心功能模块)
-- [🏗️ 架构设计](#架构设计)
-- [🔦 技术亮点](#技术亮点)
-- [❓ 面试 FAQ](#面试-faq)
-- [📂 目录结构](#目录结构)
-- [🏃 快速开始](#快速开始)
-- [🚢 发布流程](#发布流程)
-- [⚙️ 项目配置说明](#项目配置说明)
-- [📝 开发指南](#开发指南)
-- [❓ 常见问题 (FAQ)](#常见问题-faq)
-- [🤝 贡献指南](#贡献指南)
-- [📄 开源协议](#开源协议)
-- [🙏 致谢](#致谢)
-- [📮 联系方式](#联系方式)
+- [📖 项目简介](#intro)
+- [🚀 项目特性](#features)
+- [📌 功能边界说明](#boundary)
+- [🛠️ 技术栈](#tech-stack)
+- [📦 核心功能模块](#modules)
+- [🏗️ 架构设计](#architecture)
+- [🔦 技术亮点](#highlights)
+- [❓ 面试 FAQ](#interview-faq)
+- [📂 目录结构](#structure)
+- [🏃 快速开始](#quick-start)
+- [🚢 发布流程](#deployment)
+- [⚙️ 项目配置说明](#config)
+- [📝 开发指南](#dev-guide)
+- [❓ 常见问题 (FAQ)](#faq)
+- [🤝 贡献指南](#contributing)
+- [📄 开源协议](#license)
+- [🙏 致谢](#acknowledgements)
+- [📮 联系方式](#contact)
 
 ---
+
+<a id="intro"></a>
 
 ## 📖 项目简介
 
@@ -52,6 +54,8 @@
 - 💰 **价格精度**：内部整数分存储，消除浮点精度问题（前端经典考点）
 
 ---
+
+<a id="features"></a>
 
 ## 🚀 项目特性
 
@@ -96,6 +100,8 @@
 
 ---
 
+<a id="boundary"></a>
+
 ## 📌 功能边界说明
 
 > 本项目为**前端求职展示项目**，聚焦前端工程化与交互实现。以下模块为演示性质或受后端接口限制，并非完整生产实现。面试官可据此准确评估项目完成度。
@@ -130,6 +136,8 @@
 
 ---
 
+<a id="tech-stack"></a>
+
 ## 🛠️ 技术栈
 
 | 技术                                                                                     | 版本/说明  | 用途                      |
@@ -146,6 +154,8 @@
 | [GitHub Actions](https://github.com/features/actions)                                    | -          | CI 自动 lint + test       |
 
 ---
+
+<a id="modules"></a>
 
 ## 📦 核心功能模块
 
@@ -203,6 +213,8 @@
 - **智能导购**：提供贴心的购物咨询服务
 
 ---
+
+<a id="architecture"></a>
 
 ## 🏗️ 架构设计
 
@@ -271,6 +283,8 @@ stateDiagram-v2
 ```
 
 ---
+
+<a id="highlights"></a>
 
 ## 🔦 技术亮点
 
@@ -387,6 +401,8 @@ request.js 拦截器 → m_error/setError → error-boundary mixin → u-network
 
 ---
 
+<a id="interview-faq"></a>
+
 ## ❓ 面试 FAQ
 
 <details>
@@ -434,6 +450,8 @@ Vuex 3.x 是 Vue 2 生态的标准状态管理方案。自研的持久化插件�
 </details>
 
 ---
+
+<a id="structure"></a>
 
 ## 📂 目录结构
 
@@ -522,6 +540,8 @@ uni_shop/
 
 ---
 
+<a id="quick-start"></a>
+
 ## 🏃 快速开始
 
 ### 环境要求
@@ -590,6 +610,8 @@ npm run dev:mp-weixin
 
 ---
 
+<a id="deployment"></a>
+
 ## 🚢 发布流程
 
 本项目基于 uni-app 开发，编译目标为微信小程序。发布 = 编译 → 上传 → 微信后台审核。
@@ -622,6 +644,8 @@ npm run dev:mp-weixin
 
 ---
 
+<a id="config"></a>
+
 ## ⚙️ 项目配置说明
 
 ### 微信小程序配置 ([manifest.json](manifest.json))
@@ -641,6 +665,8 @@ npm run dev:mp-weixin
 - downloadFile: 60s
 
 ---
+
+<a id="dev-guide"></a>
 
 ## 📝 开发指南
 
@@ -686,6 +712,8 @@ npm run dev:mp-weixin
 - **uni-***: 基础 UI 组件（图标、标签、数字框等）
 
 ---
+
+<a id="faq"></a>
 
 ## ❓ 常见问题 (FAQ)
 
@@ -733,6 +761,8 @@ npm run dev:mp-weixin
 
 ---
 
+<a id="contributing"></a>
+
 ## 🤝 贡献指南
 
 欢迎提交 Issue 和 Pull Request 来改进本项目！
@@ -757,6 +787,8 @@ npm run dev:mp-weixin
 
 ---
 
+<a id="license"></a>
+
 ## 📄 开源协议
 
 本项目采用 [ISC License](https://opensource.org/licenses/ISC) 协议开源。
@@ -771,6 +803,8 @@ copyright notice and this permission notice appear in all copies.
 
 ---
 
+<a id="acknowledgements"></a>
+
 ## 🙏 致谢
 
 - [DCloud](https://www.dcloud.io/) - 提供 Uni-app 开发框架
@@ -779,6 +813,8 @@ copyright notice and this permission notice appear in all copies.
 - [uni-ui](https://uniapp.dcloud.io/component/uniui/uni-ui.html) - UI 组件库
 
 ---
+
+<a id="contact"></a>
 
 ## 📮 联系方式
 
