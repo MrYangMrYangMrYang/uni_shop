@@ -56,11 +56,13 @@
  * 1. 支持两种进入路径：
  *    - 路径A：从购物车点击"结算"进入，携带购物车中勾选的商品。
  *    - 路径B：从商品详情点击"立即购买"进入，携带单件商品数据（通过 URL query 传递）。
- * 2. 支付流程模拟：
- *    - 提交订单时校验地址。
- *    - 提供"立即支付"和"稍后支付"两种模拟路径。
+ * 2. 支付流程模拟（两步确认）：
+ *    - 第一步：确认是否提交订单。
+ *    - 第二步：选择"立即支付"或"稍后支付"。
  *    - 支付成功跳转至订单列表-待发货；取消支付跳转至订单列表-待付款。
- * 3. 状态清理：订单生成后，需同步清理购物车中对应的选中项。
+ * 3. 状态清理：
+ *    - 立即购买：仅清理 buyNowGoods，不影响购物车。
+ *    - 购物车结算：清理 buyNowGoods + 移除购物车中已选商品。
  */
 import { showToast } from '@/src/utils/toast.js';
 import { mapState, mapMutations } from 'vuex';
@@ -90,7 +92,8 @@ export default {
 	methods: {
 		...mapMutations('m_cart', ['removeCheckedGoods']),
 		...mapMutations('m_user', ['addOrder']),
-		// 流程：校验 -> 模拟支付弹窗 -> 持久化订单 -> 跳转
+
+		// 流程：校验 -> 确认提交 -> 选择支付方式 -> 持久化订单 -> 跳转
 		onPayment() {
 			// 防抖：避免连续点击触发多次下单
 			if (this._submitLock) return;
@@ -99,81 +102,86 @@ export default {
 			if (!this.address.userName) return showToast('请选择收货地址！');
 			this._submitLock = true;
 
-			// 2. 弹出模拟支付选择框
+			// 2. 第一步：确认是否提交订单
 			const displayAmount = fenToYuan(this.totalPrice).toFixed(2);
 			uni.showModal({
-				title: '确认下单',
-				content: `订单金额 ￥${displayAmount}，是否支付？`,
-				cancelText: '稍后支付',
-				confirmText: '立即支付',
+				title: '确认提交',
+				content: `订单金额 ￥${displayAmount}，确认提交该订单吗？`,
+				cancelText: '再想想',
+				confirmText: '确认提交',
 				confirmColor: '#C00000', // $color-primary
-				complete: () => {
-					this._submitLock = false;
-				},
 				success: res => {
-					// 3. 封装统一的订单基础数据结构
-					const orderBase = {
-						order_id: 'ORDER_' + Date.now(),
-						add_time: Date.now(),
-						// 过期时间：默认 30 分钟
-						expire_time: Date.now() + 30 * 60 * 1000,
-						total_price: this.totalPrice,
-						goods: this.orderGoods,
-						address: this.address
-					};
-
-					if (res.confirm) {
-						// --- 路径1：立即支付成功 ---
-						uni.showLoading({ title: '正在支付' });
-						setTimeout(() => {
-							uni.hideLoading();
-
-							// status: 1 = 待发货
-							this.addOrder({ ...orderBase, status: 1 });
-							// 下单后清理 buyNowGoods，防止数据残留
-							this.$store.commit('m_cart/clearBuyNowGoods');
-
-							// 购物车结算需移除已选商品
-							if (!this.buyNowGoods) {
-								this.removeCheckedGoods();
-							}
-
-							uni.showToast({
-								title: '支付成功',
-								icon: 'none',
-								duration: 1000
-							});
-
-							// 跳转至订单列表"待发货"页签（tab=2）
-							setTimeout(() => {
-								uni.redirectTo({ url: '/subpkg/order-list/order-list?tab=2' });
-							}, 1000);
-						}, 800);
-					} else if (res.cancel) {
-						// --- 路径2：取消支付/稍后支付 ---
-						// status: 0 = 待付款
-						this.addOrder({ ...orderBase, status: 0 });
-						// 下单后清理 buyNowGoods，防止数据残留
-						this.$store.commit('m_cart/clearBuyNowGoods');
-
-						// 订单已生成，即便未支付也需从购物车移除选中项
-						if (!this.buyNowGoods) {
-							this.removeCheckedGoods();
-						}
-
-						uni.showToast({
-							title: '订单已存入待付款',
-							icon: 'none',
-							duration: 1500
-						});
-
-						// 跳转至订单列表"待付款"页签（tab=1）
-						setTimeout(() => {
-							uni.redirectTo({ url: '/subpkg/order-list/order-list?tab=1' });
-						}, 1500);
+					if (!res.confirm) {
+						// 用户取消提交
+						this._submitLock = false;
+						return;
 					}
+
+					// 3. 第二步：选择支付方式
+					uni.showActionSheet({
+						itemList: ['立即支付', '稍后支付'],
+						itemColor: '#333333',
+						success: actionRes => {
+							this._handleOrderSubmit(actionRes.tapIndex === 0);
+						},
+						fail: () => {
+							// 用户取消选择（点蒙层），释放锁
+							this._submitLock = false;
+						}
+					});
+				},
+				fail: () => {
+					this._submitLock = false;
 				}
 			});
+		},
+
+		// 执行订单创建与跳转
+		// immediate: true = 立即支付，false = 稍后支付
+		_handleOrderSubmit(immediate) {
+			const orderBase = {
+				order_id: 'ORDER_' + Date.now(),
+				add_time: Date.now(),
+				// 过期时间：默认 30 分钟
+				expire_time: Date.now() + 30 * 60 * 1000,
+				total_price: this.totalPrice,
+				goods: this.orderGoods,
+				address: this.address
+			};
+
+			// 先记住是否为"立即购买"模式，再清理 buyNowGoods
+			// 必须在 clearBuyNowGoods() 之前取值，否则 this.buyNowGoods 变成 null 后无法区分
+			const isBuyNow = !!this.buyNowGoods;
+			this.$store.commit('m_cart/clearBuyNowGoods');
+
+			// 只有购物车结算才需要移除已选商品；立即购买不影响购物车
+			if (!isBuyNow) {
+				this.removeCheckedGoods();
+			}
+
+			if (immediate) {
+				// --- 路径1：立即支付 ---
+				uni.showLoading({ title: '正在支付' });
+				setTimeout(() => {
+					uni.hideLoading();
+					this.addOrder({ ...orderBase, status: 1 }); // status: 1 = 待发货
+					this._submitLock = false;
+					uni.showToast({ title: '支付成功', icon: 'none', duration: 1000 });
+					// 短暂延迟再跳转，让用户看到成功提示
+					setTimeout(() => {
+						uni.redirectTo({ url: '/subpkg/order-list/order-list?tab=2' });
+					}, 800);
+				}, 400);
+			} else {
+				// --- 路径2：稍后支付 ---
+				this.addOrder({ ...orderBase, status: 0 }); // status: 0 = 待付款
+				this._submitLock = false;
+				uni.showToast({ title: '订单已存入待付款', icon: 'none', duration: 1000 });
+				// 短暂延迟再跳转，让用户看到成功提示
+				setTimeout(() => {
+					uni.redirectTo({ url: '/subpkg/order-list/order-list?tab=1' });
+				}, 800);
+			}
 		}
 	}
 };
