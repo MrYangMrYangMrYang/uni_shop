@@ -374,19 +374,26 @@ request.js 拦截器 → m_error/setError → error-boundary mixin → u-network
 
 ### 8. 测试体系
 
-**单元测试**：109 条用例覆盖 utils / store / mixins / components 四个维度。
+**单元测试**：217 条用例覆盖 store / utils / mixins / api / config / components 六个维度，整体覆盖率 90.8%。CI 中设有覆盖率阈值门禁（lines ≥ 60%，branches ≥ 50%），低于阈值构建失败。
 
-**E2E 测试**：基于 miniprogram-automator，覆盖"首页 → 搜索 → 详情 → 加购 → 结算"完整购物流程（需微信开发者工具）。`npm run test:e2e`
+**E2E 测试**：基于 miniprogram-automator，覆盖两大场景共 11 步——
+
+- 场景一"浏览→加购"：首页 → 搜索 → 商品列表 → 详情 → 加入购物车
+- 场景二"登录守卫与结算"：未登录引导 → 一键登录 → 购物车内容渲染 → 结算跳转订单页
+
+> ⚠️ E2E 需微信开发者工具 GUI，仅限本地手动执行：`npm run test:e2e`，无法在 CI 中运行。
 
 **无障碍**：`goods-detail.vue` 作为 A11y 示范页面，标注了 aria-label / role 等关键交互属性。
 
-| 维度           | 覆盖                                                          |
-| -------------- | ------------------------------------------------------------- |
-| **utils**      | price(25) + persist(7) + request(18) + toast(8)               |
-| **store**      | cart(20) + user(20) + error(13)                               |
-| **mixins**     | auth-guard(5) + error-boundary(14)                            |
-| **components** | my-settle(13) + my-goods(9) + u-empty(9) + u-network-error(5) |
-| **总计**       | **13 测试文件，166 条用例**                                   |
+| 维度           | 覆盖                                                                    |
+| -------------- | ----------------------------------------------------------------------- |
+| **store**      | cart(20) + user(20) + error(13) + store 集成(15)                        |
+| **utils**      | price(25) + persist(7) + request(18) + toast(8) + perf(12)              |
+| **mixins**     | auth-guard(5) + error-boundary(14) + tabbar-badge(8) + custom-navbar(8) |
+| **api**        | goods(5) + home(3)                                                      |
+| **config**     | env(7)                                                                  |
+| **components** | my-settle(13) + my-goods(9) + u-empty(9) + u-network-error(5)           |
+| **总计**       | **20 测试文件，217 条用例** · 覆盖率 90.8% · 阈值门禁 60%               |
 
 ### 9. 购物车共享组件架构
 
@@ -440,8 +447,8 @@ Vuex 3.x 是 Vue 2 生态的标准状态管理方案。自研的持久化插件�
 - **ESLint + Prettier**：0 errors
 - **husky + commitlint**：commit 自动校验格式 + Conventional Commits
 - **GitHub Actions**：Push → 自动 lint:check + format:check + vitest run
-- **Vitest**：13 测试文件 / 166 用例，覆盖 utils、store、mixins、components
-- **E2E**：基于 miniprogram-automator 的完整购物流程端到端测试
+- **Vitest**：20 测试文件 / 217 用例，覆盖 store、utils、mixins、api、config、components，覆盖率 90.8%
+- **E2E**：基于 miniprogram-automator 的两段式完整购物流程端到端测试（浏览→加购 + 登录守卫→结算）
 - **SCSS 令牌规范化**：80+ SCSS 设计令牌，全项目引用变量而非硬编码值
 - **DRY 架构**：my-cart-content 共享组件消除双页重复代码
 - **条件编译 ESLint 插件** `eslint-plugin-uni-conditional`：自研，处理 uni-app 的 `#ifdef VUE3` / `#endif` 编译指令
@@ -499,14 +506,16 @@ uni_shop/
 │   ├── uni-swipe-action/     #   滑动操作组件
 │   └── uni-swipe-action-item/#   滑动操作项组件
 ├── tests/                    # 测试统一管理
-│   ├── unit/                 #   单元测试（utils / store / mixins / components）
+│   ├── unit/                 #   单元测试（store / utils / mixins / api / config / components）
+│   │   ├── api/              #     API 层测试
+│   │   ├── config/           #     配置模块测试
 │   │   ├── components/
 │   │   ├── mixins/
 │   │   ├── store/
 │   │   ├── utils/
 │   │   └── setup.js          #     全局 mock（uni/wx/Storage）
 │   └── e2e/                  #   E2E 端到端测试
-│       ├── full-flow.spec.js #     完整购物流程测试
+│       ├── full-flow.spec.js #     两段式完整购物流程（浏览→加购 + 登录守卫→结算）
 │       └── setup.js          #     环境启动配置
 ├── pages/                    # 主包页面（TabBar）
 │   ├── home/                 #   首页（网络兜底 + skeleton）
@@ -618,7 +627,8 @@ npm run dev:mp-weixin
 ### 发布前检查清单
 
 - [ ] `npm run lint:check` 零错误
-- [ ] `npm test` 全部通过
+- [ ] `npm run test:coverage` 全部通过且覆盖率达标
+- [ ] `npm run test:e2e` 两段式购物流程通过（需微信开发者工具）
 - [ ] `npm run analyze:size` 包体积不超限（主包 2MB / 分包 2MB）
 - [ ] `manifest.json` 中 `mp-weixin.setting.urlCheck` 设为 `true`
 - [ ] `src/config/env.js` 中 `apiBaseUrl` 指向生产环境接口
@@ -639,7 +649,7 @@ npm run dev:mp-weixin
 
 ### CI 保障
 
-每次 push 到 `main` 自动执行 lint → 格式检查 → 单元测试 + 覆盖率 → 包体积检查。详见 [ci.yml](./.github/workflows/ci.yml)。
+每次 push 到 `main` 或 PR 自动执行：ESLint → Prettier → 单元测试 + 覆盖率门禁（低于 60% 构建失败）。详见 [ci.yml](./.github/workflows/ci.yml)。
 
 ---
 
